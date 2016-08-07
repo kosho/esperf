@@ -8,9 +8,9 @@ Usage: `esperf [-d dictionary_file] [-r max_reoccurrence] [-t num_threads] [-X m
 Options:
 - `-d dictionary_file`: Newline delimited strings dictionary file 
 - `-h`: Show this help
-- `-r max_recurrence`: Number of recurrence HTTP request per thread
+- `-r max_recurrence`: Number of recurrence HTTP requests per thread
 - `-t num_threads`: Number of threads to generate, not always a big number gives more pressure
-- `-u user:password`: HTTP authentication username and password 
+- `-u user:password`: Username and password for HTTP authentication 
 - `-v`: Verbose outputs for debugging purpose
 - `-X`: HTTP method to perform
 
@@ -32,8 +32,8 @@ Your may alo refer to [ibcurl error codes](https://curl.haxx.se/libcurl/c/libcur
 
 ## Downloads
 
-- esperf-0.1.0-linux-x86_64.zip
-- esperf-0.1.0-darwin-x86_64.zip
+- [esperf-0.1.0-linux-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.1.0/esperf-0.1.0-darwin-x86_64.zip)
+- [esperf-0.1.0-darwin-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.1.0/esperf-0.1.0-linux-x86_64.zip)
 
 ## How to build
 
@@ -52,9 +52,11 @@ The program is confirmed built and run on the following operating systems.
 
 ### Make
 
-Simply run the below commands to generate the executable.
+Simply run the below commands to generate the executable on the target platform.
 
     $ cmake ./CMakeList.txt
     $ make
 
 ## TODO:
+
+- Provide more variations of random numbers and the geo type
