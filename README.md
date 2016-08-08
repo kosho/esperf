@@ -4,12 +4,12 @@
 It reads the query DSL from the standard input and performs HTTP requests as the request body to the specified URL.
 It is also able to modify the query string with random numbers and random strings in each request.
 
-Usage: `esperf [-d dictionary_file] [-r max_reoccurrence] [-t num_threads] [-X method] [-u user:password] url`
+Usage: `esperf [-d dictionary_file] [-r max_reoccurrence] [-t num_threads] [-X method] [-u user:password] url`  
 Options:
 - `-d dictionary_file`: Newline delimited strings dictionary file 
 - `-h`: Show this help
-- `-r max_recurrence`: Number of recurrence HTTP requests per thread
-- `-t num_threads`: Number of threads to generate, not always a big number gives more pressure
+- `-r max_recurrence`: Number of recurrence HTTP requests per thread (default 10)
+- `-t num_threads`: Number of threads to generate, not always a big number gives more pressure (default 5)
 - `-u user:password`: Username and password for HTTP authentication 
 - `-v`: Verbose outputs for debugging purpose
 - `-X`: HTTP method to perform
@@ -27,6 +27,8 @@ Options:
     $ echo '{"query": {"range": {"my_length": {"gte": $RNUM}}}}' |  ./esperf -r 1000 -t 3 "http://localhost:9200/_search"
     
     $ echo '{"query": {"term": {"first_name": {"value": "$RDICT"}}}}' | ./esperf -r 1000 -t 3 -d ./names.txt "http://localhost:9200/_search?size=1"
+
+    $ ./esperf -r 1000 -t 3 -d ./names.txt "http://localhost:9200/test-index/test-type/_bulk" < bulk.txt
 
 Your may alo refer to [ibcurl error codes](https://curl.haxx.se/libcurl/c/libcurl-errors.html) for `curl_easy_perform()` related errors.
 
