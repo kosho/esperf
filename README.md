@@ -26,14 +26,14 @@ Options:
     
     $ echo '{"query": {"range": {"my_length": {"gte": $RNUM}}}}' |  ./esperf -r 1000 -t 3 "http://localhost:9200/_search"
     
-    $ echo '{"query": {"term": {"first_name": {"value": "$RDICT"}}}}' | ./esperf -r 1000 -t 3 -d ./names.txt "http://localhost:9200/_search?size=1"
+    $ echo '{"query": {"term": {"first_name": {"value": "$RDICT"}}}}' | ./esperf -X PUT -r 1000 -t 3 -d ./names.txt "http://localhost:9200/_search?size=1"
 
 Your may alo refer to [ibcurl error codes](https://curl.haxx.se/libcurl/c/libcurl-errors.html) for `curl_easy_perform()` related errors.
 
 ## Downloads
 
-- [esperf-0.1.0-linux-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.1.0/esperf-0.1.0-darwin-x86_64.zip)
-- [esperf-0.1.0-darwin-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.1.0/esperf-0.1.0-linux-x86_64.zip)
+- [esperf-0.1.2-linux-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.1.0/esperf-0.1.2-darwin-x86_64.zip)
+- [esperf-0.1.2-darwin-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.1.0/esperf-0.1.2-linux-x86_64.zip)
 
 ## How to build
 

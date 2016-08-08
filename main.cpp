@@ -13,6 +13,8 @@ int i_failure = 0;
 
 std::mutex mtx;
 
+// TODO: show version number
+
 // replace $RNUM  in `str_in` with a random number
 std::string replace_with_random_number(std::string str_in) {
 
@@ -272,7 +274,7 @@ int main(int argc, char **argv) {
         query = "";
         for (std::string str_line; std::getline(std::cin, str_line);) {
             query.append(str_line);
-            query.append("¥n");
+            query.append("\n");
         }
     }
 
