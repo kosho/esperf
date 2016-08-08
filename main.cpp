@@ -272,6 +272,7 @@ int main(int argc, char **argv) {
         query = "";
         for (std::string str_line; std::getline(std::cin, str_line);) {
             query.append(str_line);
+            query.append("¥n");
         }
     }
 
