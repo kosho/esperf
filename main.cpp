@@ -10,9 +10,11 @@
 
 int i_success = 0;
 int i_failure = 0;
+int i_http_errors = 0;
 
 std::mutex mtx;
 
+// TODO: store statistics for benchmarking mode by using curl_easy_getinfo()
 // TODO: show version number
 
 // replace $RNUM  in `str_in` with a random number
@@ -68,6 +70,13 @@ void count_failure(){
     mtx.unlock();
 }
 
+// count HTTP errors > 400 with mutex locking
+void count_http_errors(){
+    mtx.lock();
+    i_http_errors++;
+    mtx.unlock();
+}
+
 // check if any inputs from stdin
 bool is_stdin_available(){
 
@@ -109,12 +118,15 @@ void worker(bool verbose, std::string http_method, std::string url, std::string 
         // set the method explicitly
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, http_method.c_str());
 
+        // capture HTTP errors
+        curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
+
         // enable basic auth
         if (!http_user.empty()){
             curl_easy_setopt(curl, CURLOPT_USERPWD, http_user.c_str());
         }
 
-        // repeat requests
+                // repeat requests
         for (int j = 0; j < max_recurrence; j++) {
 
             // supply random numbers and strings
@@ -147,16 +159,26 @@ void worker(bool verbose, std::string http_method, std::string url, std::string 
                 std::cout << ".";
             }
 
-            if (res == 0) {
-                count_success();
-            }else{
-                std::cerr << "Error: curl_easy_perform() returned (" << res << ") " << curl_easy_strerror(res) << std::endl;
-                // exit when the first request is failed
-//                if (j == 0){
-//                    break;
-//                }
-                count_failure();
+            // curl and HTTP errors
+            switch (res){
+                case CURLE_OK:
+                    count_success();
+                    break;
+                case CURLE_HTTP_RETURNED_ERROR:
+                    long http_response_code;
+                    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, std::ref(http_response_code));
+                    mtx.lock();
+                    std::cerr << "Error: HTTP response (" << http_response_code << ")" << std::endl;
+                    mtx.unlock();
+                    count_http_errors();
+                    break;
+                default:
+                    mtx.lock();
+                    std::cerr << "Error: curl_easy_perform() returned (" << res << ") " << curl_easy_strerror(res) << std::endl;
+                    mtx.unlock();
+                    count_failure();
             }
+
         }
         if(!verbose) fclose(f_null);
         curl_easy_cleanup(curl);
@@ -168,6 +190,7 @@ void timer(int max_threads, int max_recurrence, bool dots){
 
     int i_prev_success = 0;
     int i_prev_failure = 0;
+    int i_prev_http_errors = 0;
     char time_buff[80];
 
     while(true) {
@@ -176,14 +199,15 @@ void timer(int max_threads, int max_recurrence, bool dots){
         if(!dots){
             std::time_t now_t = std::time(NULL);
             std::strftime(time_buff, sizeof(time_buff), "%FT%T%z", std::localtime(&now_t));
-            std::cout << time_buff << " " << i_success - i_prev_success << " " << i_failure - i_prev_failure << std::endl;
+            std::cout << time_buff << " " << i_success - i_prev_success << " " << i_failure - i_prev_failure << " " << i_http_errors - i_prev_http_errors << std::endl;
         }else{
             std::cout << std::endl;
         }
         i_prev_success = i_success;
         i_prev_failure = i_failure;
+        i_prev_http_errors = i_http_errors;
         mtx.unlock();
-        if (i_success + i_failure == max_recurrence * max_threads) break;
+        if (i_success + i_failure + i_http_errors == max_recurrence * max_threads) break;
     }
 }
 

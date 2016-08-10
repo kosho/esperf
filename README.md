@@ -16,7 +16,7 @@ Options:
 
 ## Output format
 
-    <ISO 8601 formatted timestamp> <number of successful requests/sec> <number of failures/sec>
+    <ISO 8601 formatted timestamp> <number of successful requests/sec> <number of failures/sec> <number of HTTP errors/sec>
 
 ## Example usages
 
