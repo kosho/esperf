@@ -9,11 +9,11 @@ Options:
 - `-d dictionary_file`: Newline delimited strings dictionary file 
 - `-h`: Show this help
 - `-r recurrence`: Number of recurrence HTTP requests per thread (default 10)
-- `-o omit_secs`: Omit first <omit_secs> seconds from the statistics 
+- `-o omit_secs`: First `omit_secs` seconds to omit from the statistics 
 - `-t threads`: Number of threads to generate, not always a big number gives more pressure (default 5)
 - `-u user:password`: Username and password for HTTP authentication 
 - `-v`: Verbose outputs for debugging purpose
-- `-X`: HTTP method to perform
+- `-X`: HTTP method to perform (default GET)
 
 ## Downloads
 
