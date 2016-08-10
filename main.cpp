@@ -13,11 +13,15 @@ int i_success = 0;
 int i_failure = 0;
 int i_http_errors = 0;
 
+int i_o_success = 0;
+
 long l_accum_size_upload = 0;
 long l_accum_size_download = 0;
 
 int i_interval = 1;
 int i_time_elapsed = 0;
+
+auto tp_end = std::chrono::system_clock::now();
 
 std::mutex mtx;
 
@@ -63,9 +67,18 @@ std::string replace_from_random_dict(std::string str_in, std::vector<std::string
 }
 
 // count successful requests with mutex locking
+// record the last access time
 void count_success(){
     mtx.lock();
     i_success++;
+    tp_end = std::chrono::system_clock::now();
+    mtx.unlock();
+}
+
+// count successful requests with mutex locking after the fist <val> seconds
+void count_o_success(){
+    mtx.lock();
+    i_o_success++;
     mtx.unlock();
 }
 
@@ -73,6 +86,7 @@ void count_success(){
 void count_failure(){
     mtx.lock();
     i_failure++;
+    tp_end = std::chrono::system_clock::now();
     mtx.unlock();
 }
 
@@ -80,6 +94,7 @@ void count_failure(){
 void count_http_errors(){
     mtx.lock();
     i_http_errors++;
+    tp_end = std::chrono::system_clock::now();
     mtx.unlock();
 }
 
@@ -113,7 +128,7 @@ bool is_stdin_available(){
 }
 
 // the worker thread which performs requests to the http server
-void worker(bool verbose, std::string http_method, std::string url, std::string http_user, std::string query, int max_recurrence, bool dots, std::vector<std::string>& vs_dict) {
+void worker(bool verbose, std::string http_method, std::string url, std::string http_user, std::string query, int max_recurrence, bool dots, std::vector<std::string>& vs_dict, int i_omit_sec) {
     // consider mutex locking while verbose logging
 
     if(verbose) {
@@ -183,7 +198,10 @@ void worker(bool verbose, std::string http_method, std::string url, std::string 
             switch (res){
                 case CURLE_OK:
                     count_success();
-                    accum_size(curl);
+                    if (i_time_elapsed >= i_omit_sec) {
+                        count_o_success();
+                        accum_size(curl);
+                    }
                     break;
                 case CURLE_HTTP_RETURNED_ERROR:
                     long http_response_code;
@@ -240,6 +258,7 @@ int main(int argc, char **argv) {
     // default settings
     int max_threads = 5;
     int max_recurrence = 10;
+    int i_omit_sec = 0;
     bool dots = false;
     bool verbose = false;
     std::vector<std::string> vs_dict;
@@ -262,6 +281,7 @@ int main(int argc, char **argv) {
     // parse command line options
     // -d val: newline delimited strings dictionary file
     // -h: show help
+    // -o val: omit the first <val> seconds from the statistics
     // -r val: number of recurrence per thread
     // -t val: threads to generate
     // -u val: http basic authentication username and password
@@ -269,7 +289,7 @@ int main(int argc, char **argv) {
     // -X val: one of GET, PUT or POST method (default GET)
 
     int opt;
-    while ((opt = getopt(argc,argv,"ivhX:d:r:t:u:")) != EOF)
+    while ((opt = getopt(argc,argv,"ivhX:d:o:r:t:u:")) != EOF)
         switch(opt)
         {
             case 'd':
@@ -277,6 +297,9 @@ int main(int argc, char **argv) {
                 break;
             case 'i':
                 dots = true;
+                break;
+            case 'o':
+                i_omit_sec = std::atoi(optarg);
                 break;
             case 'r':
                 max_recurrence = std::atoi(optarg);
@@ -336,39 +359,48 @@ int main(int argc, char **argv) {
 
     // run threads
     for (int i = 0; i < max_threads; i++) {
-        th_worker[i] = std::thread(worker, verbose, http_method, url, http_user, query, max_recurrence, dots, std::ref(vs_dict));
+        th_worker[i] = std::thread(worker, verbose, http_method, url, http_user, query, max_recurrence, dots, std::ref(vs_dict), i_omit_sec);
     }
     for (int i = 0; i < max_threads; i++) {
         th_worker[i].join();
     }
     th_timer.join();
 
-    // calculate actual time takenß
-    auto t_end = std::chrono::system_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t_end - t_start);
+    // calculate actual time taken
+//    auto t_end = std::chrono::system_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(tp_end - t_start);
 
     std::cout << std::endl << "Finished." << std::endl << std::endl;
     std::cout <<  std::setw(35) << std::left << "URL: " << url << std::endl;
-    std::cout <<  std::setw(35) << std::left << "Input from stdin?: ";
-    if (is_stdin_available()) {
-        std::cout << "true" << std::endl;
-    }else{
-        std::cout << "false" << std::endl;
-    }
+    std::cout <<  std::setw(35) << std::left << "Method: " << http_method << std::endl;
+    std::cout <<  std::setw(35) << std::left << "Input from stdin (byte): " << query.size() << std::endl;
+//    if (is_stdin_available()) {
+//        std::cout << "true" << std::endl;
+//    }else{
+//        std::cout << "false" << std::endl;
+//    }
     std::cout <<  std::setw(35) << std::left << "Dictionary: " << dict_filename << std::endl;
+    std::cout <<  std::setw(35) << std::left << "First n secs to omit: " << i_omit_sec << std::endl;
     std::cout << std::endl;
-    std::cout <<  std::setw(35) << std::left << "Time taken (sec): " << std::setw(10) << std::right << (float) duration.count() / 1000 << std::endl;
     std::cout <<  std::setw(35) << std::left << "Number of threads: " << std::setw(10) << std::right << max_threads << std::endl;
     std::cout <<  std::setw(35) << std::left << "Number of recurrence/thread: " << std::setw(10) << std::right << max_recurrence << std::endl;
     std::cout <<  std::setw(35) << std::left << "Number of successful requests: " << std::setw(10) << std::right << i_success << std::endl;
     std::cout <<  std::setw(35) << std::left << "Number of connection failures: " << std::setw(10) << std::right << i_failure << std::endl;
     std::cout <<  std::setw(35) << std::left << "Number of HTTP responses >400: " << std::setw(10) << std::right << i_http_errors << std::endl;
-    std::cout <<  std::setw(35) << std::left << "Total size of upload (byte): " << std::setw(10) << std::right << l_accum_size_upload << std::endl;
-    std::cout <<  std::setw(35) << std::left << "Total size of download (byte): " << std::setw(10) << std::right << l_accum_size_download << std::endl;
+//    std::cout <<  std::setw(35) << std::left << "Total size of upload (byte): " << std::setw(10) << std::right << l_accum_size_upload << std::endl;
+//    std::cout <<  std::setw(35) << std::left << "Total size of download (byte): " << std::setw(10) << std::right << l_accum_size_download << std::endl;
     std::cout << std::endl;
-    std::cout <<  std::setw(35) << std::left << "Average successful requests/sec: " << std::setw(10) << std::right << (float) i_success * 1000 / duration.count() << std::endl;
-    std::cout <<  std::setw(35) << std::left << "Upload throughput (byte/sec): " << std::setw(10) << std::right << std::fixed << l_accum_size_upload * 1000 / duration.count() << std::endl;
-    std::cout <<  std::setw(35) << std::left << "Download throughput (byte/sec): " << std::setw(10) << std::right << l_accum_size_download *1000/duration.count() << std::endl;
-
+//    std::cout <<  std::setw(35) << std::left << "Average successful requests/sec: " << std::setw(10) << std::right << (float) i_success * 1000 / duration.count() << std::endl;
+    std::cout <<  std::setw(35) << std::left << "Time taken (sec): " << std::setw(10) << std::right << (float) duration.count() / 1000 << std::endl;
+    if (i_o_success > 0) {
+        std::cout << std::setw(35) << std::left << "Number of requests to measure: " << std::setw(10) << std::right
+                  << i_o_success << std::endl;
+        std::cout << std::setw(35) << std::left << "Average successful requests/sec: " << std::setw(10) << std::right
+                  << (float) i_o_success * 1000 / (duration.count() - i_omit_sec * 1000) << std::endl;
+        std::cout << std::setw(35) << std::left << "Upload throughput (byte/sec): " << std::setw(10) << std::right
+                  << std::fixed << l_accum_size_upload * 1000 / duration.count() << std::endl;
+        std::cout << std::setw(35) << std::left << "Download throughput (byte/sec): " << std::setw(10) << std::right
+                  << l_accum_size_download * 1000 / duration.count() << std::endl;
+    }
     return 0;
 }

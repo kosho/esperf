@@ -4,20 +4,21 @@
 It reads the query DSL from the standard input and performs HTTP requests as the request body to the specified URL.
 It is also able to modify the query string with random numbers and random strings in each request.
 
-Usage: `esperf [-d dictionary_file] [-r max_recurrence] [-t num_threads] [-X method] [-u user:password] url`
+Usage: `esperf [-d dictionary_file] [-o omit_secs] [-r recurrence] [-t threads] [-X method] [-u user:password] url`
 Options:
 - `-d dictionary_file`: Newline delimited strings dictionary file 
 - `-h`: Show this help
-- `-r max_recurrence`: Number of recurrence HTTP requests per thread (default 10)
-- `-t num_threads`: Number of threads to generate, not always a big number gives more pressure (default 5)
+- `-r recurrence`: Number of recurrence HTTP requests per thread (default 10)
+- `-o omit_secs`: Omit first <omit_secs> seconds from the statistics 
+- `-t threads`: Number of threads to generate, not always a big number gives more pressure (default 5)
 - `-u user:password`: Username and password for HTTP authentication 
 - `-v`: Verbose outputs for debugging purpose
 - `-X`: HTTP method to perform
 
 ## Downloads
 
-- [esperf-0.1.3-linux-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.1.3/esperf-0.1.3-linux-x86_64.zip)
-- [esperf-0.1.3-darwin-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.1.3/esperf-0.1.3-darwin-x86_64.zip)
+- [esperf-0.1.4-linux-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.1.4/esperf-0.1.4-linux-x86_64.zip)
+- [esperf-0.1.4-darwin-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.1.4/esperf-0.1.4-darwin-x86_64.zip)
 
 ## Command line usage examples
 
@@ -46,38 +47,40 @@ Your may alo refer to [ibcurl error codes](https://curl.haxx.se/libcurl/c/libcur
 ## Example output
 
 ```
-$ ./esperf -d dict.txt -t 3 -r 2000 localhost:9200/_search < body.txt
-timestamp                    success   conn_fail  http_error
-2016-08-10T17:42:28+0900        2071           0           0
-2016-08-10T17:42:29+0900        1978           0           0
-2016-08-10T17:42:30+0900        1892           0           0
-2016-08-10T17:42:31+0900          59           0           0
-
-Finished.
-
-URL:                               localhost:9200/_search
-Input from stdin?:                 true
-Dictionary:                        dict.txt
-
-Time taken (sec):                       4.006
-Number of threads:                          3
-Number of recurrence/thread:             2000
-Number of successful requests:           6000
-Number of connection failures:              0
-Number of HTTP responses >400:              0
-Total size of upload (byte):          1213102
-Total size of download (byte):       27467694
-
-Average successful requests/sec:      1497.75
-Upload throughput (byte/sec):          302821
-Download throughput (byte/sec):       6856638
+$ ./esperf -X GET -o 1 -t 5 -r 100 -d dict.txt localhost:9200/_search < body.txt
+    timestamp                    success   conn_fail  http_error
+    2016-08-10T21:49:52+0900         111           0           0
+    2016-08-10T21:49:53+0900          90           0           0
+    2016-08-10T21:49:54+0900         100           0           0
+    2016-08-10T21:49:55+0900         127           0           0
+    2016-08-10T21:49:56+0900          72           0           0
+    
+    Finished.
+    
+    URL:                               localhost:9200/_search
+    Method:                            GET
+    Input from stdin (byte):           72
+    Dictionary:                        dict.txt
+    First n secs to omit:              1
+    
+    Number of threads:                          5
+    Number of recurrence/thread:              100
+    Number of successful requests:            500
+    Number of connection failures:              0
+    Number of HTTP responses >400:              0
+    
+    Time taken (sec):                       4.589
+    Number of requests to measure:            389
+    Average successful requests/sec:      108.387
+    Upload throughput (byte/sec):           10850
+    Download throughput (byte/sec):       1361461
 ```
 
 ## How to build
 
 ### Platforms
 
-The program is confirmed built and run on the following operating systems.
+The program is tested built and run on the following operating systems.
 
 - Linux x86_64
 - Darwin x86_64 (OS X)
