@@ -12,9 +12,14 @@ int i_success = 0;
 int i_failure = 0;
 int i_http_errors = 0;
 
+long l_accum_size_upload = 0;
+long l_accum_size_download = 0;
+
+int i_interval = 1;
+int i_time_elapsed = 0;
+
 std::mutex mtx;
 
-// TODO: store statistics for benchmarking mode by using curl_easy_getinfo()
 // TODO: show version number
 
 // replace $RNUM  in `str_in` with a random number
@@ -74,6 +79,20 @@ void count_failure(){
 void count_http_errors(){
     mtx.lock();
     i_http_errors++;
+    mtx.unlock();
+}
+
+// accumulate size uploaded/downloaded
+void accum_size(CURL *curl){
+    long l_request_size;
+    double d_size_download;
+    long l_response_header_size;
+    curl_easy_getinfo(curl, CURLINFO_REQUEST_SIZE, std::ref(l_request_size));
+    curl_easy_getinfo(curl, CURLINFO_HEADER_SIZE, std::ref(l_response_header_size));
+    curl_easy_getinfo(curl, CURLINFO_SIZE_DOWNLOAD, std::ref(d_size_download));
+    mtx.lock();
+    l_accum_size_upload += l_request_size;
+    l_accum_size_download += static_cast<long>(d_size_download) + l_response_header_size;
     mtx.unlock();
 }
 
@@ -163,6 +182,7 @@ void worker(bool verbose, std::string http_method, std::string url, std::string 
             switch (res){
                 case CURLE_OK:
                     count_success();
+                    accum_size(curl);
                     break;
                 case CURLE_HTTP_RETURNED_ERROR:
                     long http_response_code;
@@ -194,7 +214,7 @@ void timer(int max_threads, int max_recurrence, bool dots){
     char time_buff[80];
 
     while(true) {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::this_thread::sleep_for(std::chrono::seconds(i_interval));
         mtx.lock();
         if(!dots){
             std::time_t now_t = std::time(NULL);
@@ -207,6 +227,7 @@ void timer(int max_threads, int max_recurrence, bool dots){
         i_prev_failure = i_failure;
         i_prev_http_errors = i_http_errors;
         mtx.unlock();
+        i_time_elapsed += i_interval;
         if (i_success + i_failure + i_http_errors == max_recurrence * max_threads) break;
     }
 }
@@ -236,7 +257,7 @@ int main(int argc, char **argv) {
 //            "}";
 
     // parse command line options
-    // -d: show dots instead of metrics
+    // -d val: newline delimited strings dictionary file
     // -h: show help
     // -r val: number of recurrence per thread
     // -t val: threads to generate
@@ -316,6 +337,14 @@ int main(int argc, char **argv) {
     }
     th_timer.join();
 
-    if (verbose) std::cout << "Total number of requests performed: " << i_success << std::endl;
+    if (verbose){
+        std::cout << std::endl << "Finished." << std::endl << std::endl;
+        std::cout << "Time taken (sec): " << i_time_elapsed << std::endl;
+        std::cout << "Number of requests performed: " << i_success << std::endl;
+        std::cout << "Number of connection failures: " << i_failure << std::endl;
+        std::cout << "Number of HTTP response >400: " << i_http_errors << std::endl;
+        std::cout << "Total size of upload (bytes): " << l_accum_size_upload << std::endl;
+        std::cout << "Total size of download (byte): " << l_accum_size_download << std::endl;
+    }
     return 0;
 }
