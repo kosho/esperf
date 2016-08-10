@@ -14,11 +14,12 @@ Options:
 - `-v`: Verbose outputs for debugging purpose
 - `-X`: HTTP method to perform
 
-## Output format
+## Downloads
 
-    <ISO 8601 formatted timestamp> <number of successful requests/sec> <number of failures/sec> <number of HTTP errors/sec>
+- [esperf-0.1.3-linux-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.1.3/esperf-0.1.3-linux-x86_64.zip)
+- [esperf-0.1.3-darwin-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.1.3/esperf-0.1.3-darwin-x86_64.zip)
 
-## Example usages
+## Command line usage examples
 
 Simply retrieve the greeting message 50 times.
 
@@ -42,10 +43,35 @@ Perform bulk insert requests.
 
 Your may alo refer to [ibcurl error codes](https://curl.haxx.se/libcurl/c/libcurl-errors.html) for `curl_easy_perform()` related errors.
 
-## Downloads
+## Example output
 
-- [esperf-0.1.3-linux-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.1.2/esperf-0.1.3-linux-x86_64.zip)
-- [esperf-0.1.3-darwin-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.1.2/esperf-0.1.3-darwin-x86_64.zip)
+```
+$ ./esperf -d dict.txt -t 3 -r 2000 localhost:9200/_search < body.txt
+timestamp                    success   conn_fail  http_error
+2016-08-10T17:42:28+0900        2071           0           0
+2016-08-10T17:42:29+0900        1978           0           0
+2016-08-10T17:42:30+0900        1892           0           0
+2016-08-10T17:42:31+0900          59           0           0
+
+Finished.
+
+URL:                               localhost:9200/_search
+Input from stdin?:                 true
+Dictionary:                        dict.txt
+
+Time taken (sec):                       4.006
+Number of threads:                          3
+Number of recurrence/thread:             2000
+Number of successful requests:           6000
+Number of connection failures:              0
+Number of HTTP responses >400:              0
+Total size of upload (byte):          1213102
+Total size of download (byte):       27467694
+
+Average successful requests/sec:      1497.75
+Upload throughput (byte/sec):          302821
+Download throughput (byte/sec):       6856638
+```
 
 ## How to build
 
