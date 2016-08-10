@@ -7,6 +7,7 @@
 #include <mutex>
 #include <sys/poll.h>
 #include <curl/curl.h>
+#include <iomanip>
 
 int i_success = 0;
 int i_failure = 0;
@@ -87,9 +88,9 @@ void accum_size(CURL *curl){
     long l_request_size;
     double d_size_download;
     long l_response_header_size;
-    curl_easy_getinfo(curl, CURLINFO_REQUEST_SIZE, std::ref(l_request_size));
-    curl_easy_getinfo(curl, CURLINFO_HEADER_SIZE, std::ref(l_response_header_size));
-    curl_easy_getinfo(curl, CURLINFO_SIZE_DOWNLOAD, std::ref(d_size_download));
+    curl_easy_getinfo(curl, CURLINFO_REQUEST_SIZE, &l_request_size);
+    curl_easy_getinfo(curl, CURLINFO_HEADER_SIZE, &l_response_header_size);
+    curl_easy_getinfo(curl, CURLINFO_SIZE_DOWNLOAD, &d_size_download);
     mtx.lock();
     l_accum_size_upload += l_request_size;
     l_accum_size_download += static_cast<long>(d_size_download) + l_response_header_size;
@@ -186,7 +187,7 @@ void worker(bool verbose, std::string http_method, std::string url, std::string 
                     break;
                 case CURLE_HTTP_RETURNED_ERROR:
                     long http_response_code;
-                    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, std::ref(http_response_code));
+                    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_response_code);
                     mtx.lock();
                     std::cerr << "Error: HTTP response (" << http_response_code << ")" << std::endl;
                     mtx.unlock();
@@ -213,13 +214,15 @@ void timer(int max_threads, int max_recurrence, bool dots){
     int i_prev_http_errors = 0;
     char time_buff[80];
 
+    std::cout << std::setw(24) << std::left << "timestamp" << " " << std::setw(11) << std::right << "success" << " " << std::setw(11) << "conn_fail" << " " << std::setw(11) << "http_error" << std::endl;
+
     while(true) {
         std::this_thread::sleep_for(std::chrono::seconds(i_interval));
         mtx.lock();
         if(!dots){
             std::time_t now_t = std::time(NULL);
             std::strftime(time_buff, sizeof(time_buff), "%FT%T%z", std::localtime(&now_t));
-            std::cout << time_buff << " " << i_success - i_prev_success << " " << i_failure - i_prev_failure << " " << i_http_errors - i_prev_http_errors << std::endl;
+            std::cout << time_buff << " " << std::setw(11) << i_success - i_prev_success << " " << std::setw(11) << i_failure - i_prev_failure << " " << std::setw(11) << i_http_errors - i_prev_http_errors << std::endl;
         }else{
             std::cout << std::endl;
         }
@@ -328,6 +331,9 @@ int main(int argc, char **argv) {
     std::thread *th_worker;
     th_worker = new std::thread[max_threads];
 
+    // start recording time
+    auto t_start = std::chrono::system_clock::now();
+
     // run threads
     for (int i = 0; i < max_threads; i++) {
         th_worker[i] = std::thread(worker, verbose, http_method, url, http_user, query, max_recurrence, dots, std::ref(vs_dict));
@@ -337,14 +343,32 @@ int main(int argc, char **argv) {
     }
     th_timer.join();
 
-    if (verbose){
-        std::cout << std::endl << "Finished." << std::endl << std::endl;
-        std::cout << "Time taken (sec): " << i_time_elapsed << std::endl;
-        std::cout << "Number of requests performed: " << i_success << std::endl;
-        std::cout << "Number of connection failures: " << i_failure << std::endl;
-        std::cout << "Number of HTTP response >400: " << i_http_errors << std::endl;
-        std::cout << "Total size of upload (bytes): " << l_accum_size_upload << std::endl;
-        std::cout << "Total size of download (byte): " << l_accum_size_download << std::endl;
+    // calculate actual time takenß
+    auto t_end = std::chrono::system_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t_end - t_start);
+
+    std::cout << std::endl << "Finished." << std::endl << std::endl;
+    std::cout <<  std::setw(35) << std::left << "URL: " << url << std::endl;
+    std::cout <<  std::setw(35) << std::left << "Input from stdin?: ";
+    if (is_stdin_available()) {
+        std::cout << "true" << std::endl;
+    }else{
+        std::cout << "false" << std::endl;
     }
+    std::cout <<  std::setw(35) << std::left << "Dictionary: " << dict_filename << std::endl;
+    std::cout << std::endl;
+    std::cout <<  std::setw(35) << std::left << "Time taken (sec): " << std::setw(10) << std::right << (float) duration.count() / 1000 << std::endl;
+    std::cout <<  std::setw(35) << std::left << "Number of threads: " << std::setw(10) << std::right << max_threads << std::endl;
+    std::cout <<  std::setw(35) << std::left << "Number of recurrence/thread: " << std::setw(10) << std::right << max_recurrence << std::endl;
+    std::cout <<  std::setw(35) << std::left << "Number of successful requests: " << std::setw(10) << std::right << i_success << std::endl;
+    std::cout <<  std::setw(35) << std::left << "Number of connection failures: " << std::setw(10) << std::right << i_failure << std::endl;
+    std::cout <<  std::setw(35) << std::left << "Number of HTTP responses >400: " << std::setw(10) << std::right << i_http_errors << std::endl;
+    std::cout <<  std::setw(35) << std::left << "Total size of upload (byte): " << std::setw(10) << std::right << l_accum_size_upload << std::endl;
+    std::cout <<  std::setw(35) << std::left << "Total size of download (byte): " << std::setw(10) << std::right << l_accum_size_download << std::endl;
+    std::cout << std::endl;
+    std::cout <<  std::setw(35) << std::left << "Average successful requests/sec: " << std::setw(10) << std::right << (float) i_success * 1000 / duration.count() << std::endl;
+    std::cout <<  std::setw(35) << std::left << "Upload throughput (byte/sec): " << std::setw(10) << std::right << std::fixed << l_accum_size_upload * 1000 / duration.count() << std::endl;
+    std::cout <<  std::setw(35) << std::left << "Download throughput (byte/sec): " << std::setw(10) << std::right << l_accum_size_download *1000/duration.count() << std::endl;
+
     return 0;
 }
