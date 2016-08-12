@@ -4,8 +4,8 @@
 It reads the query DSL from the standard input and performs HTTP requests as the request body to the specified URL.
 It is also able to modify the query string with random numbers and random strings in each request.
 
-Usage: `esperf [-d dictionary_file] [-o omit_secs] [-r recurrence] [-t threads] [-X method] [-u user:password] url`
-Options:
+Usage: `esperf [-d dictionary_file] [-o omit_secs] [-r recurrence] [-t threads] [-X method] [-u user:password] url`  
+Options:  
 - `-d dictionary_file`: Newline delimited strings dictionary file 
 - `-h`: Show this help
 - `-r recurrence`: Number of recurrence HTTP requests per thread (default 10)
