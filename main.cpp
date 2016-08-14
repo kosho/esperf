@@ -601,6 +601,7 @@ public:
 void Stats::showProgress()
 {
     // TODO: call print()
+    cout << "Stats::showProgress()" << endl;
 }
 
 void Stats::showResult()
@@ -653,7 +654,9 @@ class Worker
     Stats *stats;
     Options *options;
 public:
-    Worker(Options *options);
+    Worker(Stats *stats, Options *options);
+
+public:
     void run();
 };
 
@@ -663,9 +666,9 @@ void Worker::run()
     for (int i = 0; i < options->number_of_recurrence; i++){
         stats->count(statsInfo);
     }
-}ß
+}
 
-Worker::Worker(Options *options) : options(options) {}
+Worker::Worker(Stats *stats, Options *options) : stats(stats), options(options) {}
 
 /*
  * Timer
@@ -680,10 +683,10 @@ public:
     void start();
 };
 
-
 void Timer::start() {
+    cout << "Timer::start()" << endl;
     while (true){
-        sleep(options->interval * 1000);
+        this_thread::sleep_for(std::chrono::seconds(options->interval));
         stats->showProgress();
         if (stats->isFinished()) break;
     }
@@ -715,15 +718,12 @@ public:
 void Esperf::run()
 {
     Stats stats(options);
-    // TODO: launch workers and timer thread
 
-    thread thTest(&Test::run, Test());
-
-    // Workers
+   // Workers
     std::thread *thWorker;
     thWorker = new thread[options->number_of_threads];
     for (int i = 0; i < options->number_of_threads; i++) {
-        thWorker[i] = thread(&Worker::run, Worker(options));
+        thWorker[i] = thread(&Worker::run, Worker(&stats, options));
     }
 
     // create threads
@@ -734,7 +734,6 @@ void Esperf::run()
         thWorker[i].join();
     }
     th_timer.join();
-
 
 }
 
