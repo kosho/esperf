@@ -9,6 +9,8 @@
 #include <curl/curl.h>
 #include <iomanip>
 
+using namespace std;
+
 int i_success = 0;
 int i_failure = 0;
 int i_http_errors = 0;
@@ -253,7 +255,7 @@ void timer(int max_threads, int max_recurrence, bool dots){
     }
 }
 
-int main(int argc, char **argv) {
+int main_old(int argc, char **argv) {
 
     // default settings
     int max_threads = 5;
@@ -402,5 +404,355 @@ int main(int argc, char **argv) {
         std::cout << std::setw(35) << std::left << "Download throughput (byte/sec): " << std::setw(10) << std::right
                   << l_accum_size_download * 1000 / duration.count() << std::endl;
     }
+    return 0;
+}
+
+/*
+ * Options
+ */
+
+class Options
+{
+public:
+    unsigned int number_of_threads;
+    unsigned int number_of_recurrence;
+    unsigned int interval;
+    unsigned int iWarmupSec;
+    std::vector<std::string> vsDict;
+    std::string strDictFilename;
+    std::string strHttpMethod = "GET";
+    std::string strHttpUser;
+    std::string strQuery;
+    bool bVerbose = false;
+    int parse(int argc, char **argv);
+};
+
+int Options::parse(int argc, char **argv)
+{
+    int opt;
+    while ((opt = getopt(argc,argv,"ivhX:d:o:r:t:u:")) != EOF)
+        switch(opt)
+        {
+            case 'd':
+                strDictFilename = optarg;
+                break;
+            case 'o':
+                iWarmupSec = (unsigned int) std::atoi(optarg);
+                break;
+            case 'r':
+                number_of_recurrence =  (unsigned int) std::atoi(optarg);
+                break;
+            case 't':
+                number_of_threads = (unsigned int) std::atoi(optarg);
+                break;
+            case 'u':
+                strHttpUser = optarg;
+                break;
+            case 'v':
+                bVerbose = true;
+                break;
+            case 'X':
+                strHttpMethod = optarg;
+                break;
+            case 'h':
+            case ':':
+            default:
+                std::cout << "usage: " << "esperf" << " [-d dictionary_file] [-r max_recurrence] [-t num_threads] [-X method] url";
+                return -1;
+        }
+
+    // get url from command line
+    std::string url;
+    if (!argv[optind]) {
+        cout << "Error: URL missing" << std::endl;
+        return -1;
+    }else {
+        url = argv[optind];
+    }
+
+    // read dictionary
+    if (strDictFilename.size() > 0) {
+        std::ifstream if_dict(strDictFilename);
+        std::string str_line;
+        while (getline(if_dict, str_line))
+            vsDict.push_back(str_line);
+    }
+
+    // read request body from stdin
+    if (is_stdin_available()) {
+        strQuery = "";
+        for (std::string str_line; std::getline(std::cin, str_line);) {
+            strQuery.append(str_line);
+            strQuery.append("\n");
+        }
+    }
+    return 0;
+}
+
+/*
+ * StatsInfo
+ */
+
+class StatsInfo
+{
+
+private:
+    unsigned long l_success;
+    unsigned long l_error_curl;
+    unsigned long l_error_http;
+    unsigned long l_upload;
+    unsigned long l_download;
+    unsigned long l_time;
+public:
+    unsigned long getL_success() const {
+        return l_success;
+    }
+
+    unsigned long getL_error_curl() const {
+        return l_error_curl;
+    }
+
+    unsigned long getL_error_http() const {
+        return l_error_http;
+    }
+
+    unsigned long getL_upload() const {
+        return l_upload;
+    }
+
+    unsigned long getL_download() const {
+        return l_download;
+    }
+    unsigned long getL_time() const {
+        return l_time;
+    }
+    void setL_success(unsigned long l_success) {
+        StatsInfo::l_success = l_success;
+    }
+
+    void setL_error_curl(unsigned long l_error_curl) {
+        StatsInfo::l_error_curl = l_error_curl;
+    }
+
+    void setL_error_http(unsigned long l_error_http) {
+        StatsInfo::l_error_http = l_error_http;
+    }
+
+    void setL_upload(unsigned long l_upload) {
+        StatsInfo::l_upload = l_upload;
+    }
+
+    void setL_download(unsigned long l_download) {
+        StatsInfo::l_download = l_download;
+    }
+
+    void setL_time(unsigned long l_time) {
+        StatsInfo::l_time = l_time;
+    }
+};
+
+/*
+ * Stats
+ */
+
+class Stats
+{
+public:
+    Stats(Options *options);
+
+private:
+    Options *options;
+
+private:
+    chrono::steady_clock::time_point clock_start = chrono::steady_clock::now();
+    chrono::steady_clock::time_point clock_end;
+
+private:
+
+public:
+    bool isFinished() const;
+
+private:
+    bool finished = false;
+
+    // counters from 0 sec
+    atomic_ulong l_success;
+    atomic_ulong l_error_curl;
+    atomic_ulong l_error_http;
+    atomic_ulong l_upload;
+    atomic_ulong l_download;
+    atomic_ulong l_time;
+
+    // counters after wrap up
+    atomic_ulong l_aw_success;
+    atomic_ulong l_aw_error_curl;
+    atomic_ulong l_aw_error_http;
+    atomic_ulong l_aw_upload;
+    atomic_ulong l_aw_download;
+    atomic_ulong l_aw_time;
+
+    void print(string str);
+public:
+    void count(StatsInfo &statsInfo);
+    void showProgress();
+    void showResult();
+};
+
+void Stats::showProgress()
+{
+    // TODO: call print()
+}
+
+void Stats::showResult()
+{
+    if (finished) {
+        double elapsedSeconds = ((clock_end - clock_start).count()) * chrono::steady_clock::period::num /
+                                static_cast<double>(chrono::steady_clock::period::den);
+        // TODO: calculate and print
+    }
+}
+
+void Stats::print(string str) {
+
+}
+
+void Stats::count(StatsInfo &statsInfo) {
+    // TODO: use lock guard to make entire method safe
+    l_success += statsInfo.getL_success();
+    l_error_curl += statsInfo.getL_error_curl();
+    l_error_http += statsInfo.getL_error_http();
+    l_upload += statsInfo.getL_upload();
+    l_download += statsInfo.getL_download();
+    l_time += statsInfo.getL_time();
+    if ((chrono::steady_clock::now() - clock_start).count() * chrono::steady_clock::period::num > options->iWarmupSec ) {
+        l_aw_success += statsInfo.getL_success();
+        l_aw_error_curl += statsInfo.getL_error_curl();
+        l_aw_error_http += statsInfo.getL_error_http();
+        l_aw_upload += statsInfo.getL_upload();
+        l_aw_download += statsInfo.getL_download();
+        l_aw_time += statsInfo.getL_time();
+    }
+    if ((l_success + l_error_curl + l_error_http) == options->number_of_recurrence * options->number_of_threads ){
+        clock_end = chrono::steady_clock::now();
+        finished = true;
+    }
+}
+
+bool Stats::isFinished() const {
+    return finished;
+}
+
+Stats::Stats(Options *options) : options(options) {}
+
+/*
+ * Worker
+ */
+
+class Worker
+{
+    Stats *stats;
+    Options *options;
+public:
+    Worker(Options *options);
+    void run();
+};
+
+void Worker::run()
+{
+    StatsInfo statsInfo;
+    for (int i = 0; i < options->number_of_recurrence; i++){
+        stats->count(statsInfo);
+    }
+}ß
+
+Worker::Worker(Options *options) : options(options) {}
+
+/*
+ * Timer
+ */
+
+class Timer
+{
+    Stats *stats;
+    Options *options;
+public:
+    Timer(Stats *stats, Options *options);
+    void start();
+};
+
+
+void Timer::start() {
+    while (true){
+        sleep(options->interval * 1000);
+        stats->showProgress();
+        if (stats->isFinished()) break;
+    }
+}
+
+Timer::Timer(Stats *stats, Options *options) : stats(stats), options(options) {}
+
+
+class Test {
+public:
+    void run() {};
+};
+
+/*
+ * Esperf
+ */
+
+class Esperf
+{
+public:
+    Esperf(Options *options);
+
+private:
+    Options *options;
+public:
+    void run();
+};
+
+void Esperf::run()
+{
+    Stats stats(options);
+    // TODO: launch workers and timer thread
+
+    thread thTest(&Test::run, Test());
+
+    // Workers
+    std::thread *thWorker;
+    thWorker = new thread[options->number_of_threads];
+    for (int i = 0; i < options->number_of_threads; i++) {
+        thWorker[i] = thread(&Worker::run, Worker(options));
+    }
+
+    // create threads
+    std::thread th_timer(&Timer::start, Timer(&stats, options));
+
+    // run threads
+    for (int i = 0; i < options->number_of_threads; i++) {
+        thWorker[i].join();
+    }
+    th_timer.join();
+
+
+}
+
+Esperf::Esperf(Options *options) : options(options) {}
+
+/*
+ * main
+ */
+
+int main(int argc, char **argv) {
+
+    // parse command line options
+    Options options;
+    options.parse(argc, argv);
+
+    // run Esperf
+    Esperf esperf(&options);
+    esperf.run();
+
     return 0;
 }
