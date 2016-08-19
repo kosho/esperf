@@ -1,4 +1,4 @@
-# esperf - Elasticsearch Stress Testing Tool 
+# esperf - Elasticsearch Performance Testing Tool 
 
 `esperf` is a multi-thread program designed for measuring Elasticsearch cluster's search, aggregation and other request capacity.
 It reads the query DSL from the standard input and performs HTTP requests as the request body to the specified URL.
@@ -9,7 +9,7 @@ Options:
 - `-d dictionary_file`: Newline delimited strings dictionary file 
 - `-h`: Show this help
 - `-r recurrence`: Number of recurrence HTTP requests per thread (default 10)
-- `-o omit_secs`: First `omit_secs` seconds to omit from the statistics 
+- `-w warm-up`: `warm-up` seconds to omit from the statistics (default 0)
 - `-t threads`: Number of threads to generate, not always a big number gives more pressure (default 5)
 - `-u user:password`: Username and password for HTTP authentication 
 - `-v`: Verbose outputs for debugging purpose
@@ -47,33 +47,32 @@ Your may alo refer to [ibcurl error codes](https://curl.haxx.se/libcurl/c/libcur
 ## Example output
 
 ```
-$ ./esperf -X GET -o 1 -t 5 -r 100 -d dict.txt localhost:9200/_search < body.txt
-    timestamp                    success   conn_fail  http_error
-    2016-08-10T21:49:52+0900         111           0           0
-    2016-08-10T21:49:53+0900          90           0           0
-    2016-08-10T21:49:54+0900         100           0           0
-    2016-08-10T21:49:55+0900         127           0           0
-    2016-08-10T21:49:56+0900          72           0           0
-    
-    Finished.
-    
-    URL:                               localhost:9200/_search
-    Method:                            GET
-    Input from stdin (byte):           72
-    Dictionary:                        dict.txt
-    First n secs to omit:              1
-    
-    Number of threads:                          5
-    Number of recurrence/thread:              100
-    Number of successful requests:            500
-    Number of connection failures:              0
-    Number of HTTP responses >400:              0
-    
-    Time taken (sec):                       4.589
-    Number of requests to measure:            389
-    Average successful requests/sec:      108.387
-    Upload throughput (byte/sec):           10850
-    Download throughput (byte/sec):       1361461
+$ ./esperf -X GET -w 1 -t 5 -r 100 -d dict.txt localhost:9200/_search < body.txt
+Timestamp                        Success            Fail       HTTP>400   Upload(byte) Download(byte)   Avg Response
+2016-08-19T21:09:14+0900              73               0              0           9344        1172459        0.06627
+2016-08-19T21:09:15+0900              78               0              0          10112        1268825        0.03322
+2016-08-19T21:09:16+0900              85               0              0          10880        1365190        0.02058
+2016-08-19T21:09:17+0900              88               0              0          11264        1413373        0.01548
+2016-08-19T21:09:18+0900              90               0              0          11520        1445495        0.01227
+2016-08-19T21:09:19+0900              82               0              0          10496        1317006        0.00901
+2016-08-19T21:09:20+0900               3               0              0            384          48183        0.00012
+---------------------- Options ---------------------
+                  Number of threads:               5
+               Number of recurrence:             100
+                     Interval (sec):               1
+                      Warm-up (sec):               2
+                         Dictionary: /tmp/dict.txt
+                                URL: localhost:9200/_search
+                        HTTP Method: GET
+                               Body: {"query": {"term": {"first_name": {"value": "$RDICT"}}}}
+---------------------- Result ----------------------
+                   Total time (sec):         6.05935
+                  Number of success:             349
+       Number of connection failure:               0
+       Number of HTTP response >400:               0
+    Average successful requests/sec:        57.59690
+       Upload throughput (byte/sec):            7372
+     Download throughput (byte/sec):          925066
 ```
 
 ## How to build
