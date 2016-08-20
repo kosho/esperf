@@ -11,12 +11,12 @@ using namespace std;
 
 int main(int argc, char **argv) {
 
-    // parse command line options
+    // parse command line options_
     Options options;
-    if (options.parse(argc, argv)){
-        // run Esperf
+    if (options.Parse(argc, argv)){
+        // run esperf
         Esperf esperf(&options);
-        esperf.run();
+        esperf.Run();
     };
 
     return 0;

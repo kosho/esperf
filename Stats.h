@@ -5,61 +5,70 @@
 #ifndef ESPERF_STATS_H
 #define ESPERF_STATS_H
 
-#include "Options.h"
 #include <iostream>
+
+#include "Options.h"
 
 using namespace std;
 
 class Stats {
-    Options *options;
+public:
+    Stats(Options *options);
 
-    chrono::steady_clock::time_point clock_start = chrono::steady_clock::now();
-    chrono::steady_clock::time_point clock_end;
+    bool IsFinished() const;
 
-    int iProgressWidth = 15;
-    int iResultWidth = 15;
-    bool finished = false;
+    void Count(int success, int error_curl, int error_http, u_long size_upload, u_long size_download,
+               double time_transfer);
 
-    // counters from 0 sec
-    atomic_ulong ulSuccess;
-    atomic_ulong ulErrorCurl;
-    atomic_ulong ulErrorHttp;
-    atomic_ulong ulSizeUpload;
-    atomic_ulong ulSizeDownload;
-    atomic<double> dTimeTransfer {0.0};
+    void ShowProgressHeader();
 
+    void ShowProgress();
+
+    void ShowResult();
+
+private:
+    Options *options_;
+
+    // Keep start and stop time
+    chrono::steady_clock::time_point clock_start_ = chrono::steady_clock::now();
+    chrono::steady_clock::time_point clock_stop_;
+
+    // Finished processing
+    bool finished_ = false;
+
+    // Counters from 0 sec
+    atomic_ulong success_;
+    atomic_ulong error_curl_;
+    atomic_ulong error_http_;
+    atomic_ulong size_upload_;
+    atomic_ulong size_download_;
+    atomic<double> time_transfer_{0.0};
+
+    // Counters after warm-up seconds
+    atomic_ulong wu_success_;
+    atomic_ulong wu_error_curl_;
+    atomic_ulong wu_error_http_;
+    atomic_ulong wu_size_upload_;
+    atomic_ulong wu_size_download_;
+    atomic<double> wu_time_transfer_;
+
+    u_long prev_success_ = 0;
+    u_long prev_error_curl_ = 0;
+    u_long prev_error_http_ = 0;
+    u_long prev_size_upload_ = 0;
+    u_long prev_size_download_ = 0;
+    double prev_time_transfer_ = 0;
+
+    // Function to add value to atomic double
     void add_to_atomic_double(atomic<double> *var, double val) {
         auto current = var->load();
         while (!var->compare_exchange_weak(current, current + val));
     }
 
-    // counters after wrap up
-    atomic_ulong ulAwSuccess;
-    atomic_ulong ulAwErrorCurl;
-    atomic_ulong ulAwErrorHttp;
-    atomic_ulong ulAwSizeUpload;
-    atomic_ulong ulAwSizeDownload;
-    atomic<double> dAwTimeTransfer;
+    void PrintLine(string option, u_int value);
 
-    unsigned long prevSuccess = 0;
-    unsigned long prevErrorCurl = 0;
-    unsigned long prevErrorHttp = 0;
-    unsigned long prevSizeUpload = 0;
-    unsigned long prevSizeDownload = 0;
-    double prevTimeTransfer = 0;
+    void PrintLine(string option, double value);
 
-public:
-    Stats(Options *options);
-    bool isFinished() const;
-    void count(int success, int errorCurl, int errorHttp, unsigned long sizeUpload, unsigned long sizeDownload, double timeTransfer);
-    void showProgressHeader();
-    void showProgress();
-    void showResult();
-    void printLine(string strOtion, unsigned int value);
-    void printLine(string strOtion, double value);
-    void printLine(string strOtion, string value);
-    void printLine(string strOtion, bool value);
 };
-
 
 #endif //ESPERF_STATS_H

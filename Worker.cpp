@@ -1,56 +1,61 @@
 //
 // Created by Kosho Owa on 2016/08/19.
+// Worker thread to perform HTTP requests
 //
+
 
 #include "Worker.h"
 
-using namespace std;
+Worker::Worker(Stats *stats, Options *options) : stats_(stats), options_(options) {}
 
-void Worker::run()
-{
+void Worker::Run() {
     // init easy curl
     CURL *curl = curl_easy_init();
 
-    if (curl){
+    if (curl) {
         CURLcode cr;
-        FILE *fNull;
+        FILE *f;
 
-        // do not show the response unless verbose logging
-        if (!options->bVerbose) {
-            fNull = fopen("/dev/null", "wb");
-            curl_easy_setopt(curl, CURLOPT_WRITEDATA, fNull);
+        // Do not show the response unless verbose logging
+        if (!options_->verbose_) {
+            f = fopen("/dev/null", "wb");
+            curl_easy_setopt(curl, CURLOPT_WRITEDATA, f);
         }
 
-        // set the method explicitly
-        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, options->strHttpMethod.c_str());
+        // Set the method explicitly
+        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, options_->http_method_.c_str());
 
-        // capture HTTP errors
+        // Capture HTTP errors
         curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
 
-        // enable basic auth
-        if (options->strHttpUser.empty()){
-            curl_easy_setopt(curl, CURLOPT_USERPWD, options->strHttpUser.c_str());
+        // Enable basic auth
+        if (options_->http_user_.empty()) {
+            curl_easy_setopt(curl, CURLOPT_USERPWD, options_->http_user_.c_str());
         }
 
-        for (int i = 0; i < options->number_of_recurrence; i++){
+        for (int i = 0; i < options_->num_recurrence_; i++) {
             // supply random numbers and strings
-            string strURL = replaceRNUM(options->strURL);
-            string strQuery = replaceRNUM(options->strQuery);
-            if (options->vsDict.size() > 0){
-                strURL = replaceRDICT(strURL);
-                strQuery = replaceRDICT(strQuery);
+            string url = ReplaceRNUMEx(options_->request_url_);
+            url = ReplaceRNUM(url);
+            string query = ReplaceRNUMEx(options_->request_body_);
+            query = ReplaceRNUM(query);
+            if (options_->dict_.size() > 0) {
+                url = ReplaceRDICT(url);
+                query = ReplaceRDICT(query);
             }
 
             // set the URL and the body
-            curl_easy_setopt(curl, CURLOPT_URL, strURL.c_str());
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, strQuery.size());
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, strQuery.c_str());
+            curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, query.size());
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, query.c_str());
 
-            // perform a request
+            // Perform a request
             cr = curl_easy_perform(curl);
 
+            stringstream msg;
+
             // curl and HTTP errors
-            switch (cr){
+            switch (cr) {
                 case CURLE_OK:
                     long sizeUpload;
                     double sizeDownload;
@@ -60,59 +65,82 @@ void Worker::run()
                     curl_easy_getinfo(curl, CURLINFO_SIZE_DOWNLOAD, &sizeDownload);
                     curl_easy_getinfo(curl, CURLINFO_HEADER_SIZE, &sizeReceivedHeader);
                     curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &transferTime);
-                    stats->count(1, 0, 0, sizeUpload, (unsigned int) (sizeDownload + sizeReceivedHeader) , transferTime);
+                    stats_->Count(1, 0, 0, sizeUpload, (u_int) (sizeDownload + sizeReceivedHeader),
+                                  transferTime);
                     break;
                 case CURLE_HTTP_RETURNED_ERROR:
                     long http_response_code;
                     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_response_code);
-                    // cerr << "Error: HTTP response (" << http_response_code << ")" << endl;
-                    stats->count(0, 0, 1, 0, 0, 0);
+                    // TODO: thread safe
+                    // msg << "Error: HTTP response (" << http_response_code << ")" << endl;
+                    //cerr << msg.str();
+                    stats_->Count(0, 0, 1, 0, 0, 0);
                     break;
                 default:
-                    //cerr << "Error: curl_easy_perform() returned (" << cr << ") " << curl_easy_strerror(cr) << endl;
-                    stats->count(0, 1, 0, 0, 0, 0);
+                    // TODO: thread safe
+                    // msg << "Error: curl_easy_perform() returned (" << cr << ") " << curl_easy_strerror(cr) << endl;
+                    //cerr << msg.str();
+                    stats_->Count(0, 1, 0, 0, 0, 0);
             }
-
         }
-        fclose(fNull);
+        fclose(f);
         curl_easy_cleanup(curl);
     }
 }
 
-Worker::Worker(Stats *stats, Options *options) : stats(stats), options(options) {}
-
-string Worker::replaceRNUM(string strIn) {
-
+// Replace $RNUM with random numbers
+string Worker::ReplaceRNUM(string in) {
     random_device rd;
 
-    string str_from = "$RNUM";
-    string str_subject = strIn;
-    string::size_type pos = str_subject.find(str_from);
+    string from = "$RNUM";
+    string subject = in;
+    string::size_type pos = subject.find(from);
 
     while (pos != string::npos) {
-        string str_to = to_string(rd() % 256);
-        str_subject.replace(pos, str_from.size(), str_to);
-        pos = str_subject.find(str_from, pos + str_to.size());
+        string to = to_string(rd() % 256);
+        subject.replace(pos, from.size(), to);
+        pos = subject.find(from, pos + to.size());
     }
 
-    return str_subject;
-
+    return subject;
 }
 
-string Worker::replaceRDICT(string strIn) {
-
+// Replace $RDICT with randomly selected strings
+string Worker::ReplaceRDICT(string in) {
     random_device rd;
 
-    string str_from = "$RDICT";
-    string str_subject = strIn;
-    string::size_type pos = str_subject.find(str_from);
+    string from = "$RDICT";
+    string subject = in;
+    string::size_type pos = subject.find(from);
 
     while (pos != string::npos) {
-        string str_to = options->vsDict.at(rd() % options->vsDict.size());
-        str_subject.replace(pos, str_from.size(), str_to);
-        pos = str_subject.find(str_from, pos + str_to.size());
+        string to = options_->dict_.at(rd() % options_->dict_.size());
+        subject.replace(pos, from.size(), to);
+        pos = subject.find(from, pos + to.size());
     }
 
-    return str_subject;
+    return subject;
+}
 
+string Worker::ReplaceRNUMEx(string in) {
+    random_device rd;
+
+    string from = "$RNUM(";
+    string subject = in;
+    string::size_type s_pos = subject.find(from);
+
+    while (s_pos != string::npos) {
+        string::size_type e_pos = subject.find(")", s_pos);
+        int m = atoi(subject.substr(s_pos + from.size(), e_pos).c_str());
+        string to;
+        if (m > 0) {
+            to = to_string(rd() % m);
+        }else{
+            to = "";
+        }
+        subject.replace(s_pos, e_pos - s_pos +1, to);
+        s_pos = subject.find(from, s_pos + to.size());
+    }
+
+    return subject;
 }

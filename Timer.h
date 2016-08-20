@@ -5,20 +5,23 @@
 #ifndef ESPERF_TIMER_H
 #define ESPERF_TIMER_H
 
-#include "Options.h"
-#include "Stats.h"
-
 #include <iostream>
 #include <thread>
+
+#include "Options.h"
+#include "Stats.h"
 
 using namespace std;
 
 class Timer {
-    Stats *stats;
-    Options *options;
 public:
     Timer(Stats *stats, Options *options);
-    void start();
+
+    void Start();
+
+private:
+    Stats *stats_;
+    Options *options_;
 };
 
 #endif //ESPERF_TIMER_H

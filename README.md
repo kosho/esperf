@@ -30,9 +30,9 @@ Perform a match_all query 1000x3 times on all shards from 3 threads.
 
     $ echo '{"query": {"match_all": {}}}' | ./esperf -r 1000 -t 3 "http://localhost:9200/_search"
 
-Perform range queries with randomly generated numbers.
+Perform range queries with randomly generated numbers (0 to 99).
 
-    $ echo '{"query": {"range": {"my_length": {"gte": $RNUM}}}}' |  ./esperf -r 1000 -t 3 "http://localhost:9200/_search"
+    $ echo '{"query": {"range": {"my_length": {"gte": $RNUM(99)}}}}' |  ./esperf -r 1000 -t 3 "http://localhost:9200/_search"
 
 Perform term queries with randomly selected strings from the dictionary.
     
@@ -47,32 +47,33 @@ Your may alo refer to [ibcurl error codes](https://curl.haxx.se/libcurl/c/libcur
 ## Example output
 
 ```
-$ ./esperf -X GET -w 1 -t 5 -r 100 -d dict.txt localhost:9200/_search < body.txt
-Timestamp                        Success            Fail       HTTP>400   Upload(byte) Download(byte)   Avg Response
-2016-08-19T21:09:14+0900              73               0              0           9344        1172459        0.06627
-2016-08-19T21:09:15+0900              78               0              0          10112        1268825        0.03322
-2016-08-19T21:09:16+0900              85               0              0          10880        1365190        0.02058
-2016-08-19T21:09:17+0900              88               0              0          11264        1413373        0.01548
-2016-08-19T21:09:18+0900              90               0              0          11520        1445495        0.01227
-2016-08-19T21:09:19+0900              82               0              0          10496        1317006        0.00901
-2016-08-19T21:09:20+0900               3               0              0            384          48183        0.00012
----------------------- Options ---------------------
+$ .esperf -X GET -i 1 -w 2 -t 5 -r 3000 -d .dict.txt localhost:9200/_search < .body.txt
+Timestamp                  Success      Fail HTTP>400   Upload Download Response
+------------------------ --------- --------- -------- -------- -------- --------
+2016-08-20T14:52:07+0900      3098         0        0      184      211   0.0015
+2016-08-20T14:52:08+0900      4149         0        0      183      211   0.0006
+2016-08-20T14:52:09+0900      2960         0        0      183      211   0.0005
+2016-08-20T14:52:10+0900      4133         0        0      184      211   0.0003
+2016-08-20T14:52:11+0900       658         0        0      183      211   0.0001
+----------------------------------- Options ------------------------------------
                   Number of threads:               5
-               Number of recurrence:             100
+               Number of recurrence:            3000
                      Interval (sec):               1
                       Warm-up (sec):               2
-                         Dictionary: /tmp/dict.txt
+                         Dictionary: ./dict.txt
                                 URL: localhost:9200/_search
                         HTTP Method: GET
                                Body: {"query": {"term": {"first_name": {"value": "$RDICT"}}}}
----------------------- Result ----------------------
-                   Total time (sec):         6.05935
-                  Number of success:             349
+
+----------------------------------- Results ------------------------------------
+                   Total time (sec):         4.25686
+                  Number of success:            7776
        Number of connection failure:               0
        Number of HTTP response >400:               0
-    Average successful requests/sec:        57.59690
-       Upload throughput (byte/sec):            7372
-     Download throughput (byte/sec):          925066
+    Average successful requests/sec:            1826
+       Upload throughput (byte/sec):          336118
+     Download throughput (byte/sec):          385444
+        Average time transfer (sec):         0.00256
 ```
 
 ## How to build
@@ -98,5 +99,3 @@ Simply run the below commands to generate the executable on the target platform.
     $ make
 
 ## TODO:
-
-- Provide more variations of random numbers and the geo type

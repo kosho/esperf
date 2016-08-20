@@ -1,108 +1,115 @@
 //
 // Created by Kosho Owa on 2016/08/19.
+// Parse and hold command line options
 //
 
 #include "Options.h"
 
-int Options::parse(int argc, char **argv)
+static const string COMMAND_LINE_OPTIONS_MSG = "Usage esperf [-d dictionary_file] [-r recurrence] [-t num_threads] [-w warm_up_sec] [-X method] url";
+static const string OPTIONS_HEADER = "----------------------------------- Options ------------------------------------";
+
+// Parse command line options_ and keep by instance variables
+int Options::Parse(int argc, char **argv)
 {
     int opt;
     while ((opt = getopt(argc,argv,"vhX:d:i:w:r:t:u:")) != EOF)
         switch(opt)
         {
             case 'd':
-                strDictFilename = optarg;
+                dict_filename_ = optarg;
                 break;
             case 'i':
-                interval = (unsigned int) atoi(optarg);
+                interval_sec_ = (u_int) atoi(optarg);
                 break;
             case 'w':
-                iWarmupSec = (unsigned int) atoi(optarg);
+                warmup_sec_ = (u_int) atoi(optarg);
                 break;
             case 'r':
-                number_of_recurrence =  (unsigned int) atoi(optarg);
+                num_recurrence_ =  (u_int) atoi(optarg);
                 break;
             case 't':
-                number_of_threads = (unsigned int) atoi(optarg);
+                num_threads_ = (u_int) atoi(optarg);
                 break;
             case 'u':
-                strHttpUser = optarg;
+                http_user_ = optarg;
                 break;
             case 'v':
-                bVerbose = true;
+                verbose_ = true;
                 break;
             case 'X':
-                strHttpMethod = optarg;
+                http_method_ = optarg;
                 break;
             case 'h':
             case ':':
             default:
-                cout << "usage: " << "esperf" << " [-d dictionary_file] [-r recurrence] [-t num_threads] [-w warm_up_sec] [-X method] url";
+                cout << COMMAND_LINE_OPTIONS_MSG;
                 return -1;
         }
 
-    // get url from command line
+    // Get url from command line
     if (!argv[optind]) {
         cout << "Error: URL missing" << endl;
         return -1;
     }else {
-        strURL = argv[optind];
+        request_url_ = argv[optind];
     }
 
-    // read dictionary
-    if (strDictFilename.size() > 0) {
-        ifstream if_dict(strDictFilename);
+    // Read dictionary
+    if (dict_filename_.size() > 0) {
+        ifstream if_dict(dict_filename_);
         string str_line;
         while (getline(if_dict, str_line))
-            vsDict.push_back(str_line);
+            dict_.push_back(str_line);
     }
 
-    // read request body from stdin
-    if (isStdinAvailable()) {
-        strQuery = "";
+    // Construct request body from stdin
+    if (IsStdinAvailable()) {
+        request_body_ = "";
         for (string str_line; getline(cin, str_line);) {
-            strQuery.append(str_line);
-            strQuery.append("\n");
+            request_body_.append(str_line);
+            request_body_.append("\n");
         }
     }
     return 1;
 }
 
-void Options::printLine(string strOtion, unsigned int value)
+void Options::PrintLine(string otion, u_int value)
 {
-    cout << setw(35) << right << strOtion << ": " << setw(15) << right << value << endl;
+    cout << setw(35) << right << otion << ": " << setw(15) << right << value << endl;
 }
 
-void Options::printLine(string strOtion, string value)
+void Options::PrintLine(string otion, string value)
 {
-    cout << setw(35) << right << strOtion << ": " << value << endl;
+    cout << setw(35) << right << otion << ": " << value << endl;
 }
 
-void Options::printLine(string strOtion, bool value)
+void Options::PrintLine(string otion, bool value)
 {
     if (value){
-        cout << setw(35) << right << strOtion << ": " << "true" << endl;
+        cout << setw(35) << right << otion << ": " << "true" << endl;
     }else{
-        cout << setw(35) << right << strOtion << ": " << "false" << endl;
+        cout << setw(35) << right << otion << ": " << "false" << endl;
     }
 }
 
-void Options::print()
+// Print parsed options
+void Options::Print()
 {
-    cout << "---------------------- Options ---------------------" << endl;
-    printLine("Number of threads", number_of_threads);
-    printLine("Number of recurrence", number_of_recurrence);
-    printLine("Interval (sec)", interval);
-    printLine("Warm-up (sec)", iWarmupSec);
-    printLine("Dictionary", strDictFilename);
-    printLine("URL", strURL);
-    printLine("HTTP Method", strHttpMethod);
-    if (bVerbose) printLine("HTTP User", strHttpUser);
-    if (bVerbose) printLine("Verbose", bVerbose);
-    printLine("Body", strQuery);
+    cout << OPTIONS_HEADER << endl;
+    PrintLine("Number of threads", num_threads_);
+    PrintLine("Number of recurrence", num_recurrence_);
+    PrintLine("Interval (sec)", interval_sec_);
+    PrintLine("Warm-up (sec)", warmup_sec_);
+    PrintLine("Dictionary", dict_filename_);
+    PrintLine("URL", request_url_);
+    PrintLine("HTTP Method", http_method_);
+    if (verbose_) PrintLine("HTTP User", http_user_);
+    if (verbose_) PrintLine("Verbose", verbose_);
+    PrintLine("Body", request_body_);
 }
 
-bool Options::isStdinAvailable() {
+// Check if any standard input is available
+bool Options::IsStdinAvailable() {
     struct pollfd fds;
     fds.fd = 0; // stdin
     fds.events = POLLIN;

@@ -5,23 +5,31 @@
 #ifndef ESPERF_WORKER_H
 #define ESPERF_WORKER_H
 
-#include "Options.h"
-#include "Stats.h"
-
 #include <iostream>
 #include <curl/curl.h>
 #include <random>
+#include <sstream>
+
+#include "Options.h"
+#include "Stats.h"
 
 using namespace std;
 
 class Worker {
-    Stats *stats;
-    Options *options;
 public:
     Worker(Stats *stats, Options *options);
-    string replaceRNUM(string strIn);
-    string replaceRDICT(string strIn);
-    void run();
+
+    void Run();
+
+private:
+    Stats *stats_;
+    Options *options_;
+
+    string ReplaceRNUM(string in);
+
+    string ReplaceRNUMEx(string in);
+
+    string ReplaceRDICT(string in);
 };
 
 

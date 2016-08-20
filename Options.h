@@ -17,23 +17,30 @@ using namespace std;
 
 class Options {
 public:
-    unsigned int number_of_threads;
-    unsigned int number_of_recurrence;
-    unsigned int interval = 1;
-    unsigned int iWarmupSec;
-    vector<string> vsDict;
-    string strDictFilename;
-    string strHttpMethod = "GET";
-    string strHttpUser;
-    string strQuery;
-    string strURL;
-    bool bVerbose = false;
-    int parse(int argc, char **argv);
-    bool isStdinAvailable();
-    void printLine(string strOtion, unsigned int value);
-    void printLine(string strOtion, string value);
-    void printLine(string strOtion, bool value);
-    void print();
+    u_int num_threads_;
+    u_int num_recurrence_;
+    u_int interval_sec_ = 1;
+    u_int warmup_sec_;
+    vector<string> dict_;
+    string dict_filename_;
+    string http_method_ = "GET";
+    string http_user_;
+    string request_body_;
+    string request_url_;
+    bool verbose_ = false;
+
+    int Parse(int argc, char **argv);
+
+    void Print();
+
+private:
+    bool IsStdinAvailable();
+
+    void PrintLine(string otion, u_int value);
+
+    void PrintLine(string otion, string value);
+
+    void PrintLine(string otion, bool value);
 };
 
 

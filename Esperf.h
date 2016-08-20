@@ -5,20 +5,21 @@
 #ifndef ESPERF_ESPERF_H
 #define ESPERF_ESPERF_H
 
+#include <thread>
+
 #include "Options.h"
 #include "Stats.h"
 #include "Worker.h"
 #include "Timer.h"
 
-#include <thread>
-
 using namespace std;
 
 class Esperf {
-    Options *options;
 public:
     Esperf(Options *options);
-    void run();
+    void Run();
+private:
+    Options *options_;
 };
 
 
