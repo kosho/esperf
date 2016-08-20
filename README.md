@@ -32,7 +32,7 @@ Perform a match_all query 1000x3 times on all shards from 3 threads.
 
 Perform range queries with randomly generated numbers (0 to 99).
 
-    $ echo '{"query": {"range": {"my_length": {"gte": $RNUM(99)}}}}' |  ./esperf -r 1000 -t 3 "http://localhost:9200/_search"
+    $ echo '{"query": {"range": {"my_length": {"gte": $RNUM(100)}}}}' |  ./esperf -r 1000 -t 3 "http://localhost:9200/_search"
 
 Perform term queries with randomly selected strings from the dictionary.
     
@@ -47,7 +47,7 @@ Your may alo refer to [ibcurl error codes](https://curl.haxx.se/libcurl/c/libcur
 ## Example output
 
 ```
-$ .esperf -X GET -i 1 -w 2 -t 5 -r 3000 -d .dict.txt localhost:9200/_search < .body.txt
+$ .esperf -X GET -i 1 -w 2 -t 5 -r 3000 -d ./dict.txt localhost:9200/_search < ./body.txt
 Timestamp                  Success      Fail HTTP>400   Upload Download Response
 ------------------------ --------- --------- -------- -------- -------- --------
 2016-08-20T14:52:07+0900      3098         0        0      184      211   0.0015
