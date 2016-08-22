@@ -41,10 +41,10 @@ void Worker::Run() {
         curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
 
         // Enable basic auth
-        if (options_->http_user_.empty()) {
+        if (!options_->http_user_.empty()) {
             curl_easy_setopt(curl, CURLOPT_USERPWD, options_->http_user_.c_str());
         }
-
+c
         for (int i = 0; i < options_->num_recurrence_; i++) {
             // Supply random numbers and strings
             string url = ReplaceRNUMEx(options_->request_url_);
@@ -58,10 +58,10 @@ void Worker::Run() {
 
             if(options_->verbose_){
                 stringstream msg_url;
-                msg_url << this_thread::get_id() << " URL:" << url << endl;
+                msg_url << this_thread::get_id() << " URL: " << url << endl;
                 safe_cout(msg_url.str());
                 stringstream msg_body;
-                msg_body << this_thread::get_id() << " Body:" << body << endl;
+                msg_body << this_thread::get_id() << " Body: " << body << endl;
                 safe_cout(msg_body.str());
             }
 
