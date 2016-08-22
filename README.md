@@ -101,5 +101,3 @@ Simply run the below commands to generate the executable on the target platform.
     $ make
 
 ## TODO:
-
-- Pass timeout parameter to curl

@@ -21,6 +21,7 @@ public:
     u_int num_recurrence_;
     u_int interval_sec_ = 1;
     u_int warmup_sec_;
+    u_int timeout_sec_;
     vector<string> dict_;
     string dict_filename_;
     string http_method_ = "GET";

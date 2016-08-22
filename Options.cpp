@@ -12,7 +12,7 @@ static const string OPTIONS_HEADER = "----------------------------------- Option
 int Options::Parse(int argc, char **argv)
 {
     int opt;
-    while ((opt = getopt(argc, argv,"vhX:d:i:w:r:t:u:")) != EOF)
+    while ((opt = getopt(argc, argv,"vhX:d:i:w:o:r:t:u:")) != EOF)
         switch(opt)
         {
             case 'd':
@@ -32,6 +32,9 @@ int Options::Parse(int argc, char **argv)
                 break;
             case 'u':
                 http_user_ = optarg;
+                break;
+            case 'o':
+                timeout_sec_ = static_cast<u_int>(atoi(optarg));
                 break;
             case 'v':
                 verbose_ = true;
@@ -101,6 +104,7 @@ void Options::Print()
     PrintLine("Number of recurrence", num_recurrence_);
     PrintLine("Interval (sec)", interval_sec_);
     PrintLine("Warm-up (sec)", warmup_sec_);
+    PrintLine("Timeout", timeout_sec_);
     PrintLine("Dictionary", dict_filename_);
     PrintLine("URL", request_url_);
     PrintLine("HTTP Method", http_method_);

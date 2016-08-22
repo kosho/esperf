@@ -70,6 +70,9 @@ void Worker::Run() {
             curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, body.size());
             curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body.c_str());
 
+            // Set timeout
+            curl_easy_setopt(curl, CURLOPT_TIMEOUT, options_->timeout_sec_);
+
             // Perform a request
             cr = curl_easy_perform(curl);
 
