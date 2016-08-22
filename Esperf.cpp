@@ -6,13 +6,13 @@
 
 void Esperf::Run()
 {
-    Stats stats(options_);
+    Stats stats(options_, &mtx_for_cout_);
 
     // Workers
     thread *thWorker;
     thWorker = new thread[options_->num_threads_];
     for (int i = 0; i < options_->num_threads_; i++) {
-        thWorker[i] = thread(&Worker::Run, Worker(&stats, options_));
+        thWorker[i] = thread(&Worker::Run, Worker(&stats, options_, &mtx_for_cout_));
     }
 
     // create threads

@@ -9,6 +9,7 @@
 #include <curl/curl.h>
 #include <random>
 #include <sstream>
+#include <thread>
 
 #include "Options.h"
 #include "Stats.h"
@@ -19,17 +20,25 @@ class Worker {
 public:
     Worker(Stats *stats, Options *options);
 
+    Worker(Stats *stats_, Options *options_, mutex *mtx_for_cout_);
+
     void Run();
 
 private:
     Stats *stats_;
     Options *options_;
+    mutex *mtx_for_cout_;
 
-    string ReplaceRNUM(string in);
+    string ReplaceRNUM(const string in);
 
-    string ReplaceRNUMEx(string in);
+    string ReplaceRNUMEx(const string in);
 
-    string ReplaceRDICT(string in);
+    string ReplaceRDICT(const string in);
+
+    void safe_cout(const string msg);
+
+    void safe_cerr(const string msg);
+
 };
 
 

@@ -20,6 +20,7 @@ public:
     void Run();
 private:
     Options *options_;
+    mutex mtx_for_cout_;
 };
 
 

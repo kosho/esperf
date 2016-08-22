@@ -32,12 +32,14 @@ void Stats::ShowProgress() {
         response = (time_transfer_ - prev_time_transfer_) / success_;
     }
 
-    cout << time_buff << " " << setw(PROGRESS_WIDTH) << success_ - prev_success_ << " "
+    stringstream msg;
+    msg << time_buff << " " << setw(PROGRESS_WIDTH) << success_ - prev_success_ << " "
          << setw(PROGRESS_WIDTH) << error_curl_ - prev_error_curl_
          << setw(PROGRESS_WIDTH) << error_http_ - prev_error_http_
          << setw(PROGRESS_WIDTH) << upload
          << setw(PROGRESS_WIDTH) << download
          << setw(PROGRESS_WIDTH) << fixed << setprecision(4) << response << endl;
+    safe_cout(msg.str());
 
     prev_success_ = success_;
     prev_error_curl_ = error_curl_;
@@ -77,8 +79,8 @@ bool Stats::IsFinished() const {
 }
 
 // Safely count the number of requests and other statistics
-void Stats::Count(int success, int error_curl, int error_http, u_long size_upload, u_long size_download,
-                  double time_transfer) {
+void Stats::Count(const int success, const int error_curl, const int error_http,
+                  const u_long size_upload, const u_long size_download, const double time_transfer) {
 
     // TODO: use lock guard to make entire method safe
     success_ += success;
@@ -104,25 +106,30 @@ void Stats::Count(int success, int error_curl, int error_http, u_long size_uploa
     }
 }
 
-void Stats::PrintLine(string option, u_int value) {
-    cout << setw(35) << right << option << ": " << setw(RESULT_WIDTH) << right << value << endl;
+void Stats::PrintLine(const string option, const u_int value) {
+    stringstream msg;
+    msg << setw(35) << right << option << ": " << setw(RESULT_WIDTH) << right << value << endl;
+    safe_cout(msg.str());
 }
 
-void Stats::PrintLine(string option, double value) {
-    cout << setw(35) << right << option << ": " << setw(RESULT_WIDTH) << right << fixed << setprecision(5) << value
+void Stats::PrintLine(const string option, const double value) {
+    stringstream msg;
+    msg << setw(35) << right << option << ": " << setw(RESULT_WIDTH) << right << fixed << setprecision(5) << value
          << endl;
+    safe_cout(msg.str());
 }
 
 void Stats::ShowProgressHeader() {
-    cout << setw(24) << left << "Timestamp" << " "
+    stringstream msg;
+    msg << setw(24) << left << "Timestamp" << " "
          << setw(PROGRESS_WIDTH) << right << "Success" << " " << setw(PROGRESS_WIDTH) << "Fail" << setw(PROGRESS_WIDTH)
          << "HTTP>400"
          << setw(PROGRESS_WIDTH) << "Upload" << setw(PROGRESS_WIDTH) << "Download" << setw(PROGRESS_WIDTH) << "Response"
-         << endl;
-    cout << PROGRESS_HEADER << endl;
+         << endl << PROGRESS_HEADER << endl;
+    safe_cout(msg.str());
 }
 
-Stats::Stats(Options *options) : options_(options) {
+Stats::Stats(Options *options_, mutex *mtx_for_cout_) : options_(options_), mtx_for_cout_(mtx_for_cout_) {
     success_ = 0;
     error_curl_ = 0;
     error_http_ = 0;
@@ -135,4 +142,14 @@ Stats::Stats(Options *options) : options_(options) {
     wu_size_upload_ = 0;
     wu_size_download_ = 0;
     wu_time_transfer_ = 0;
+}
+
+void Stats::safe_cout(const string msg) {
+    lock_guard<mutex> lock(*mtx_for_cout_);
+    cout << msg;
+}
+
+void Stats::safe_cerr(const string msg) {
+    lock_guard<std::mutex> lock(*mtx_for_cout_);
+    cerr << msg;
 }

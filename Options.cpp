@@ -12,7 +12,7 @@ static const string OPTIONS_HEADER = "----------------------------------- Option
 int Options::Parse(int argc, char **argv)
 {
     int opt;
-    while ((opt = getopt(argc,argv,"vhX:d:i:w:r:t:u:")) != EOF)
+    while ((opt = getopt(argc, argv,"vhX:d:i:w:r:t:u:")) != EOF)
         switch(opt)
         {
             case 'd':
@@ -73,17 +73,17 @@ int Options::Parse(int argc, char **argv)
     return 1;
 }
 
-void Options::PrintLine(string otion, u_int value)
+void Options::PrintLine(const string otion, const u_int value)
 {
     cout << setw(35) << right << otion << ": " << setw(15) << right << value << endl;
 }
 
-void Options::PrintLine(string otion, string value)
+void Options::PrintLine(const string otion, const string value)
 {
     cout << setw(35) << right << otion << ": " << value << endl;
 }
 
-void Options::PrintLine(string otion, bool value)
+void Options::PrintLine(const string otion, const bool value)
 {
     if (value){
         cout << setw(35) << right << otion << ": " << "true" << endl;

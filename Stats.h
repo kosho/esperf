@@ -6,6 +6,7 @@
 #define ESPERF_STATS_H
 
 #include <iostream>
+#include <sstream>
 
 #include "Options.h"
 
@@ -13,12 +14,12 @@ using namespace std;
 
 class Stats {
 public:
-    Stats(Options *options);
+    Stats(Options *options_, mutex *mtx_for_cout_);
 
     bool IsFinished() const;
 
-    void Count(int success, int error_curl, int error_http, u_long size_upload, u_long size_download,
-               double time_transfer);
+    void Count(const int success, const int error_curl, const int error_http,
+               const u_long size_upload, const u_long size_download, const double time_transfer);
 
     void ShowProgressHeader();
 
@@ -28,6 +29,7 @@ public:
 
 private:
     Options *options_;
+    mutex *mtx_for_cout_;
 
     // Keep start and stop time
     chrono::steady_clock::time_point clock_start_ = chrono::steady_clock::now();
@@ -65,9 +67,13 @@ private:
         while (!var->compare_exchange_weak(current, current + val));
     }
 
-    void PrintLine(string option, u_int value);
+    void PrintLine(const string option, const u_int value);
 
-    void PrintLine(string option, double value);
+    void PrintLine(const string option, double value);
+
+    void safe_cout(const string msg);
+
+    void safe_cerr(const string msg);
 
 };
 

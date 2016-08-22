@@ -36,11 +36,11 @@ public:
 private:
     bool IsStdinAvailable();
 
-    void PrintLine(string otion, u_int value);
+    void PrintLine(const string otion, const u_int value);
 
-    void PrintLine(string otion, string value);
+    void PrintLine(const string otion, const string value);
 
-    void PrintLine(string otion, bool value);
+    void PrintLine(const string otion, const bool value);
 };
 
 

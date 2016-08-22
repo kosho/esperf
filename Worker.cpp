@@ -6,9 +6,21 @@
 
 #include "Worker.h"
 
-Worker::Worker(Stats *stats, Options *options) : stats_(stats), options_(options) {}
+//Worker::Worker(Stats *stats, Options *options) : stats_(stats), options_(options) {}
+
+Worker::Worker(Stats *stats_, Options *options_, mutex *mtx_for_cout_) : stats_(stats_), options_(options_),
+                                                                         mtx_for_cout_(mtx_for_cout_) {}
 
 void Worker::Run() {
+
+
+    // Verbose output
+    if(options_->verbose_){
+        stringstream msg_start;
+        msg_start << this_thread::get_id() << " Started." << endl;
+        safe_cout(msg_start.str());
+    }
+
     // init easy curl
     CURL *curl = curl_easy_init();
 
@@ -34,25 +46,34 @@ void Worker::Run() {
         }
 
         for (int i = 0; i < options_->num_recurrence_; i++) {
-            // supply random numbers and strings
+            // Supply random numbers and strings
             string url = ReplaceRNUMEx(options_->request_url_);
             url = ReplaceRNUM(url);
-            string query = ReplaceRNUMEx(options_->request_body_);
-            query = ReplaceRNUM(query);
+            string body = ReplaceRNUMEx(options_->request_body_);
+            body = ReplaceRNUM(body);
             if (options_->dict_.size() > 0) {
                 url = ReplaceRDICT(url);
-                query = ReplaceRDICT(query);
+                body = ReplaceRDICT(body);
             }
 
-            // set the URL and the body
+            if(options_->verbose_){
+                stringstream msg_url;
+                msg_url << this_thread::get_id() << " URL:" << url << endl;
+                safe_cout(msg_url.str());
+                stringstream msg_body;
+                msg_body << this_thread::get_id() << " Body:" << body << endl;
+                safe_cout(msg_body.str());
+            }
+
+            // Set the URL and the body
             curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, query.size());
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, query.c_str());
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, body.size());
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body.c_str());
 
             // Perform a request
             cr = curl_easy_perform(curl);
 
-            stringstream msg;
+            stringstream msg_response;
 
             // curl and HTTP errors
             switch (cr) {
@@ -71,25 +92,23 @@ void Worker::Run() {
                 case CURLE_HTTP_RETURNED_ERROR:
                     long http_response_code;
                     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_response_code);
-                    // TODO: thread safe
-                    // msg << "Error: HTTP response (" << http_response_code << ")" << endl;
-                    //cerr << msg.str();
+                    msg_response << "Error: HTTP response (" << http_response_code << ")" << endl;
+                    safe_cerr(msg_response.str());
                     stats_->Count(0, 0, 1, 0, 0, 0);
                     break;
                 default:
-                    // TODO: thread safe
-                    // msg << "Error: curl_easy_perform() returned (" << cr << ") " << curl_easy_strerror(cr) << endl;
-                    //cerr << msg.str();
+                    msg_response << "Error: curl_easy_perform() returned (" << cr << ") " << curl_easy_strerror(cr) << endl;
+                    safe_cerr(msg_response.str());
                     stats_->Count(0, 1, 0, 0, 0, 0);
             }
         }
-        fclose(f);
+        if (!options_->verbose_) fclose(f);
         curl_easy_cleanup(curl);
     }
 }
 
 // Replace $RNUM with random numbers
-string Worker::ReplaceRNUM(string in) {
+string Worker::ReplaceRNUM(const string in) {
     random_device rd;
 
     string from = "$RNUM";
@@ -106,7 +125,7 @@ string Worker::ReplaceRNUM(string in) {
 }
 
 // Replace $RDICT with randomly selected strings
-string Worker::ReplaceRDICT(string in) {
+string Worker::ReplaceRDICT(const string in) {
     random_device rd;
 
     string from = "$RDICT";
@@ -122,7 +141,7 @@ string Worker::ReplaceRDICT(string in) {
     return subject;
 }
 
-string Worker::ReplaceRNUMEx(string in) {
+string Worker::ReplaceRNUMEx(const string in) {
     random_device rd;
 
     string from = "$RNUM(";
@@ -143,4 +162,14 @@ string Worker::ReplaceRNUMEx(string in) {
     }
 
     return subject;
+}
+
+void Worker::safe_cout(const string msg) {
+    lock_guard<mutex> lock(*mtx_for_cout_);
+    cout << msg;
+}
+
+void Worker::safe_cerr(const string msg) {
+    lock_guard<std::mutex> lock(*mtx_for_cout_);
+    cerr << msg;
 }
