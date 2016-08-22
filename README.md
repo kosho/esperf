@@ -15,6 +15,8 @@ Options:
 - `-v`: Verbose outputs for debugging purpose
 - `-X`: HTTP method to perform (default GET)
 
+`libcurl` is necessary to be installed on the local system. `sudo yum install libcurl` or `sudo apt-get install libcurl4-openssl-dev` to install.
+
 ## Downloads
 
 - [esperf-0.2.0-linux-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.2.0/esperf-0.2.0-linux-x86_64.zip)
@@ -99,3 +101,5 @@ Simply run the below commands to generate the executable on the target platform.
     $ make
 
 ## TODO:
+
+- Pass timeout parameter to curl
