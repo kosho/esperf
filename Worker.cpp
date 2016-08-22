@@ -44,7 +44,7 @@ void Worker::Run() {
         if (!options_->http_user_.empty()) {
             curl_easy_setopt(curl, CURLOPT_USERPWD, options_->http_user_.c_str());
         }
-c
+
         for (int i = 0; i < options_->num_recurrence_; i++) {
             // Supply random numbers and strings
             string url = ReplaceRNUMEx(options_->request_url_);
