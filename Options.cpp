@@ -42,14 +42,15 @@ int Options::Parse(int argc, char **argv)
             case 'h':
             case ':':
             default:
-                cout << COMMAND_LINE_OPTIONS_MSG;
+                cout << COMMAND_LINE_OPTIONS_MSG << endl;
                 return -1;
         }
 
     // Get url from command line
     if (!argv[optind]) {
         cout << "Error: URL missing" << endl;
-        return -1;
+        cout << COMMAND_LINE_OPTIONS_MSG << endl;
+        return 0;
     }else {
         request_url_ = argv[optind];
     }

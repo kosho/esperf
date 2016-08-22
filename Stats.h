@@ -8,6 +8,11 @@
 #include <iostream>
 #include <sstream>
 
+#ifdef __linux__
+#include <mutex>
+#include <atomic>
+#endif
+
 #include "Options.h"
 
 using namespace std;
