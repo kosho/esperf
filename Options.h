@@ -17,8 +17,8 @@ using namespace std;
 
 class Options {
 public:
-    u_int num_threads_;
-    u_int num_recurrence_;
+    u_int num_threads_ = 1;
+    u_int num_recurrence_ = 1;
     u_int interval_sec_ = 1;
     u_int warmup_sec_;
     u_int timeout_sec_;

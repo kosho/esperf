@@ -8,9 +8,9 @@ Usage: `esperf [-d dictionary_file] [-o omit_secs] [-r recurrence] [-t threads] 
 Options:  
 - `-d dictionary_file`: Newline delimited strings dictionary file 
 - `-h`: Show this help
-- `-r recurrence`: Number of recurrence HTTP requests per thread (default 10)
+- `-r recurrence`: Number of recurrence HTTP requests per thread (default 1)
 - `-w warm-up`: `warm-up` seconds to omit from the statistics (default 0)
-- `-t threads`: Number of threads to generate, not always a big number gives more pressure (default 5)
+- `-t threads`: Number of threads to generate, not always a big number gives more pressure (default 1)
 - `-u user:password`: Username and password for HTTP authentication 
 - `-v`: Verbose outputs for debugging purpose
 - `-X`: HTTP method to perform (default GET)
@@ -24,7 +24,7 @@ Options:
 
 ## Command line usage examples
 
-Simply retrieve the greeting message 50 times.
+Simply retrieve the greeting message.
 
     $ ./esperf "http://localhost:9200"
 
