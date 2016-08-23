@@ -104,7 +104,7 @@ void Options::Print()
     PrintLine("Number of recurrence", num_recurrence_);
     PrintLine("Interval (sec)", interval_sec_);
     PrintLine("Warm-up (sec)", warmup_sec_);
-    PrintLine("Timeout", timeout_sec_);
+    PrintLine("Timeout (sec)", timeout_sec_);
     PrintLine("Dictionary", dict_filename_);
     PrintLine("URL", request_url_);
     PrintLine("HTTP Method", http_method_);

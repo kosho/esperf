@@ -52,6 +52,7 @@ void Stats::ShowProgress() {
 
 // Print the final result
 void Stats::ShowResult() {
+    // TODO: Omit last several cool-down seconds from the calculation
     if (finished_) {
         double elapsed_sec = ((clock_stop_ - clock_start_).count()) * chrono::steady_clock::period::num /
                              static_cast<double>(chrono::steady_clock::period::den);
@@ -82,7 +83,6 @@ bool Stats::IsFinished() const {
 void Stats::Count(const int success, const int error_curl, const int error_http,
                   const u_long size_upload, const u_long size_download, const double time_transfer) {
 
-    // TODO: use lock guard to make entire method safe
     success_ += success;
     error_curl_ += error_curl;
     error_http_ += error_http;
