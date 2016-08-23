@@ -54,11 +54,12 @@ void Stats::ShowProgress() {
 void Stats::ShowResult() {
     if (finished_) {
         double elapsed_sec = ((clock_stop_ - clock_start_).count()) * chrono::steady_clock::period::num /
-                             static_cast<double>(chrono::steady_clock::period::den);
+                             static_cast<double>(chrono::steady_clock::period::den) - options_->warmup_sec_;
 
         cout << RESULT_HEADER << endl;
 
-        Stats::PrintLine("Total time (sec)", elapsed_sec);
+
+        Stats::PrintLine("Time after warm-up (sec)", elapsed_sec);
         Stats::PrintLine("Number of success", static_cast<u_int>(wu_success_));
         Stats::PrintLine("Number of connection failure", static_cast<u_int>(wu_error_curl_));
         Stats::PrintLine("Number of HTTP response >400", static_cast<u_int>(wu_error_http_));
@@ -67,7 +68,7 @@ void Stats::ShowResult() {
         Stats::PrintLine("Download throughput (byte/sec)", static_cast<u_int> (wu_size_download_ / elapsed_sec));
         double time_transfer = 0.0;
         if (wu_success_ > 0) {
-            time_transfer = static_cast<double> (time_transfer_ / wu_success_);
+            time_transfer = static_cast<double> (wu_time_transfer_ / wu_success_);
         }
         Stats::PrintLine("Average time transfer (sec)", time_transfer);
     }

@@ -20,8 +20,8 @@ Options:
 
 ## Downloads
 
-- [esperf-0.2.1-linux-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.2.1/esperf-0.2.1-linux-x86_64.zip)
-- [esperf-0.2.1-darwin-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.2.1/esperf-0.2.1-darwin-x86_64.zip)
+- [esperf-0.2.2-linux-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.2.2/esperf-0.2.2-linux-x86_64.zip)
+- [esperf-0.2.2-darwin-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.2.2/esperf-0.2.2-darwin-x86_64.zip)
 
 ## Command line usage examples
 
@@ -50,36 +50,32 @@ Your may alo refer to [ibcurl error codes](https://curl.haxx.se/libcurl/c/libcur
 ## Example output
 
 ```
-$ esperf -X GET -i 1 -t 100 -r 1000 -d /tmp/dict.txt localhost:9200/_search
-  Timestamp                  Success      Fail HTTP>400   Upload Download Response
-  ------------------------ --------- --------- -------- -------- -------- --------
-  2016-08-23T21:16:42+0900        91         0        0      128    16062   0.5925
-  2016-08-23T21:16:43+0900        64         0        0      128    15899   0.4771
-  2016-08-23T21:16:44+0900       116         0        0      128    15933   0.2279
-  2016-08-23T21:16:45+0900       154         0        0      128    15973   0.3582
-  2016-08-23T21:16:46+0900       134         0        2      128    16085   0.1973
-  2016-08-23T21:16:47+0900       113         0        1      128    16066   0.0891
-  2016-08-23T21:16:48+0900       137         0        0      128    16062   0.0603
-  2016-08-23T21:16:49+0900       182         0        5      128    16154   0.1970
-  ----------------------------------- Options ------------------------------------
-                    Number of threads:             100
-                 Number of recurrence:            1000
-                       Interval (sec):               1
-                        Warm-up (sec):               0
-                        Timeout (sec):               0
-                           Dictionary: /tmp/dict.txt
-                                  URL: localhost:9200/_search
-                          HTTP Method: GET
-                                 Body: {"query": {"term": {"first_name": {"value": "$RDICT"}}}}
-  ----------------------------------- Results ------------------------------------
-                     Total time (sec):         7.90934
-                    Number of success:             992
-         Number of connection failure:               0
-         Number of HTTP response >400:               8
-      Average successful requests/sec:             125
-         Upload throughput (byte/sec):           16053
-       Download throughput (byte/sec):         2012180
-          Average time transfer (sec):         0.76265
+$ echo '{"query": {"term": {"first_name": {"value": "$RDICT"}}}}' | ./esperf -t 10 -r 10000 -w 1 -d ./dict.txt localhost:9200/_search
+Timestamp                  Success      Fail HTTP>400   Upload Download Response
+------------------------ --------- --------- -------- -------- -------- --------
+2016-08-23T21:51:39+0900      3061         0        0      186      211   0.0032
+2016-08-23T21:51:40+0900      3182         0        0      186      211   0.0031
+2016-08-23T21:51:41+0900      3757         0        0      186      211   0.0026
+----------------------------------- Options ------------------------------------
+                  Number of threads:              10
+               Number of recurrence:           10000
+                     Interval (sec):               1
+                      Warm-up (sec):               1
+                      Timeout (sec):               0
+                         Dictionary: ./dict.txt
+                                URL: localhost:9200/_search
+                        HTTP Method: GET
+                               Body: {"query": {"term": {"first_name": {"value": "$RDICT"}}}}
+
+----------------------------------- Results ------------------------------------
+           Time after warm-up (sec):         2.00114
+                  Number of success:            6946
+       Number of connection failure:               0
+       Number of HTTP response >400:               0
+    Average successful requests/sec:            3471
+       Upload throughput (byte/sec):          645610
+     Download throughput (byte/sec):          732470
+        Average time transfer (sec):         0.00281
 ```
 
 ## How to build
