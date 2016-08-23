@@ -45,7 +45,7 @@ void Worker::Run() {
             curl_easy_setopt(curl, CURLOPT_USERPWD, options_->http_user_.c_str());
         }
 
-        for (int i = 0; i < options_->num_recurrence_; i++) {
+        while(stats_->CountRequest() < options_->num_recurrence_) {
             // Supply random numbers and strings
             string url = ReplaceRNUMEx(options_->request_url_);
             url = ReplaceRNUM(url);
@@ -89,20 +89,20 @@ void Worker::Run() {
                     curl_easy_getinfo(curl, CURLINFO_SIZE_DOWNLOAD, &sizeDownload);
                     curl_easy_getinfo(curl, CURLINFO_HEADER_SIZE, &sizeReceivedHeader);
                     curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &transferTime);
-                    stats_->Count(1, 0, 0, sizeUpload, (u_int) (sizeDownload + sizeReceivedHeader),
-                                  transferTime);
+                    stats_->CountResult(1, 0, 0, sizeUpload, (u_int) (sizeDownload + sizeReceivedHeader),
+                                        transferTime);
                     break;
                 case CURLE_HTTP_RETURNED_ERROR:
                     long http_response_code;
                     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_response_code);
                     msg_response << "Error: HTTP response (" << http_response_code << ")" << endl;
                     safe_cerr(msg_response.str());
-                    stats_->Count(0, 0, 1, 0, 0, 0);
+                    stats_->CountResult(0, 0, 1, 0, 0, 0);
                     break;
                 default:
                     msg_response << "Error: curl_easy_perform() returned (" << cr << ") " << curl_easy_strerror(cr) << endl;
                     safe_cerr(msg_response.str());
-                    stats_->Count(0, 1, 0, 0, 0, 0);
+                    stats_->CountResult(0, 1, 0, 0, 0, 0);
             }
         }
         if (!options_->verbose_) fclose(f);

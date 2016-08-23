@@ -23,8 +23,10 @@ public:
 
     bool IsFinished() const;
 
-    void Count(const int success, const int error_curl, const int error_http,
-               const u_long size_upload, const u_long size_download, const double time_transfer);
+    u_long CountRequest();
+
+    void CountResult(const int success, const int error_curl, const int error_http,
+                     const u_long size_upload, const u_long size_download, const double time_transfer);
 
     void ShowProgressHeader();
 
@@ -44,6 +46,7 @@ private:
     bool finished_ = false;
 
     // Counters from 0 sec
+    atomic_ulong requests_;
     atomic_ulong success_;
     atomic_ulong error_curl_;
     atomic_ulong error_http_;

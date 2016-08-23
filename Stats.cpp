@@ -29,7 +29,7 @@ void Stats::ShowProgress() {
     double response = 0.0;
 
     if (success_ > 0) {
-        response = (time_transfer_ - prev_time_transfer_) / success_;
+        response = (time_transfer_ - prev_time_transfer_) / (success_ - prev_success_) ;
     }
 
     stringstream msg;
@@ -52,7 +52,6 @@ void Stats::ShowProgress() {
 
 // Print the final result
 void Stats::ShowResult() {
-    // TODO: Omit last several cool-down seconds from the calculation
     if (finished_) {
         double elapsed_sec = ((clock_stop_ - clock_start_).count()) * chrono::steady_clock::period::num /
                              static_cast<double>(chrono::steady_clock::period::den);
@@ -80,8 +79,8 @@ bool Stats::IsFinished() const {
 }
 
 // Safely count the number of requests and other statistics
-void Stats::Count(const int success, const int error_curl, const int error_http,
-                  const u_long size_upload, const u_long size_download, const double time_transfer) {
+void Stats::CountResult(const int success, const int error_curl, const int error_http,
+                        const u_long size_upload, const u_long size_download, const double time_transfer) {
 
     success_ += success;
     error_curl_ += error_curl;
@@ -100,7 +99,7 @@ void Stats::Count(const int success, const int error_curl, const int error_http,
         add_to_atomic_double(&wu_time_transfer_, time_transfer);
     }
 
-    if ((success_ + error_curl_ + error_http_) == options_->num_recurrence_ * options_->num_threads_) {
+    if ((success_ + error_curl_ + error_http_) == options_->num_recurrence_ ) {
         clock_stop_ = chrono::steady_clock::now();
         finished_ = true;
     }
@@ -130,6 +129,7 @@ void Stats::ShowProgressHeader() {
 }
 
 Stats::Stats(Options *options_, mutex *mtx_for_cout_) : options_(options_), mtx_for_cout_(mtx_for_cout_) {
+    requests_ = 0;
     success_ = 0;
     error_curl_ = 0;
     error_http_ = 0;
@@ -152,4 +152,8 @@ void Stats::safe_cout(const string msg) {
 void Stats::safe_cerr(const string msg) {
     lock_guard<std::mutex> lock(*mtx_for_cout_);
     cerr << msg;
+}
+
+u_long Stats::CountRequest() {
+    return requests_++;
 }

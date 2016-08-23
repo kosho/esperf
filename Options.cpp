@@ -12,7 +12,7 @@ static const string OPTIONS_HEADER = "----------------------------------- Option
 int Options::Parse(int argc, char **argv)
 {
     int opt;
-    while ((opt = getopt(argc, argv,"vhX:d:i:w:o:r:t:u:")) != EOF)
+    while ((opt = getopt(argc, argv,"vhX:d:i:w:T:r:t:u:")) != EOF)
         switch(opt)
         {
             case 'd':
@@ -33,7 +33,7 @@ int Options::Parse(int argc, char **argv)
             case 'u':
                 http_user_ = optarg;
                 break;
-            case 'o':
+            case 'T':
                 timeout_sec_ = static_cast<u_int>(atoi(optarg));
                 break;
             case 'v':
