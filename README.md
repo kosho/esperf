@@ -29,7 +29,7 @@ Simply retrieve the greeting message.
 
     $ ./esperf "http://localhost:9200"
 
-Perform a match_all query 1000x3 times on all shards from 3 threads.
+Perform a match_all query 1000 times on all shards from 3 threads.
 
     $ echo '{"query": {"match_all": {}}}' | ./esperf -r 1000 -t 3 "http://localhost:9200/_search"
 
