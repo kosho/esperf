@@ -13,11 +13,11 @@ int main(int argc, char **argv) {
 
     // parse command line options_
     Options options;
-    if (options.Parse(argc, argv)){
+    if (options.Parse(argc, argv) == EXIT_SUCCESS){
         // run esperf
         Esperf esperf(&options);
         esperf.Run();
     };
 
-    return 0;
+    return EXIT_SUCCESS;
 }

@@ -42,18 +42,16 @@ int Options::Parse(int argc, char **argv)
             case 'X':
                 http_method_ = optarg;
                 break;
-            case 'h':
-            case ':':
             default:
                 cout << COMMAND_LINE_OPTIONS_MSG << endl;
-                return -1;
+                return EXIT_FAILURE;
         }
 
     // Get url from command line
     if (!argv[optind]) {
         cout << "Error: URL missing" << endl;
         cout << COMMAND_LINE_OPTIONS_MSG << endl;
-        return 0;
+        return EXIT_FAILURE;
     }else {
         request_url_ = argv[optind];
     }
@@ -74,7 +72,7 @@ int Options::Parse(int argc, char **argv)
             request_body_.append("\n");
         }
     }
-    return 1;
+    return EXIT_SUCCESS;
 }
 
 void Options::PrintLine(const string otion, const u_int value)
