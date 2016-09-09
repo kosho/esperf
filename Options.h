@@ -44,5 +44,4 @@ private:
     void PrintLine(const string otion, const bool value);
 };
 
-
 #endif //ESPERF_OPTIONS_H
