@@ -5,7 +5,7 @@
 
 #include "Options.h"
 
-static const string COMMAND_LINE_OPTIONS_MSG = "Usage esperf [-d dictionary_file] [-r recurrence] [-t num_threads] [-w warm_up_sec] [-X method] url";
+static const string COMMAND_LINE_OPTIONS_MSG = "Usage: esperf [-d dictionary_file] [-i interval_sec] [-w warm_up_sec] [-r recurrence] [-t num_threads] [-u user:password] [-T timeout] [-X method] url";
 static const string OPTIONS_HEADER = "----------------------------------- Options ------------------------------------";
 
 // Parse command line options_ and keep by instance variables

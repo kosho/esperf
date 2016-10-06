@@ -4,7 +4,7 @@
 It reads the query DSL from the standard input and performs HTTP requests as the request body to the specified URL.
 It is also able to modify the query string with random numbers and random strings in each request.
 
-Usage: `esperf [-d dictionary_file] [-o omit_secs] [-r recurrence] [-t threads] [-X method] [-u user:password] url`  
+Usage: `esperf [-d dictionary_file] [-i interval_sec] [-w warm_up_sec] [-r recurrence] [-t num_threads] [-u user:password] [-T timeout] [-X method] url`  
 Options:  
 - `-d dictionary_file`: Newline delimited strings dictionary file 
 - `-h`: Show this help
@@ -20,8 +20,8 @@ Options:
 
 ## Downloads
 
-- [esperf-0.2.3-linux-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.2.3/esperf-0.2.3-linux-x86_64.zip)
-- [esperf-0.2.3-darwin-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.2.3/esperf-0.2.3-darwin-x86_64.zip)
+- [esperf-0.2.4-linux-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.2.4/esperf-0.2.4-linux-x86_64.zip)
+- [esperf-0.2.4-darwin-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.2.4/esperf-0.2.4-darwin-x86_64.zip)
 
 ## Command line usage examples
 
