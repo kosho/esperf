@@ -1,18 +1,18 @@
 # esperf - Elasticsearch Performance Testing Tool 
 
-`esperf` is a multi-thread program designed for measuring Elasticsearch cluster's search, aggregation and other request capacity.
+`esperf` is a single binary multi-thread program designed for measuring Elasticsearch cluster's search, aggregation and other request capacity.
 It reads the query DSL from the standard input and performs HTTP requests as the request body to the specified URL.
 It is also able to modify the query string with random numbers and random strings in each request.
 
-Usage: `esperf [-d dictionary_file] [-i interval_sec] [-w warm_up_sec] [-r recurrence] [-t num_threads] [-u user:password] [-T timeout] [-X method] url`  
+Usage: `esperf [-v] [-d dictionary_file] [-i interval_sec] [-w warm_up_sec] [-r recurrence] [-t num_threads] [-u user:password] [-T timeout] [-X method] url`  
 Options:  
 - `-d dictionary_file`: Newline delimited strings dictionary file 
 - `-h`: Show this help
 - `-r recurrence`: Number of recurrence HTTP requests per thread (default 1)
-- `-t threads`: Number of threads to generate, not always a big number gives more pressure (default 1)
+- `-t num_threads`: Number of threads to generate, not always a big number gives more pressure (default 1)
 - `-u user:password`: Username and password for HTTP authentication 
 - `-v`: Verbose outputs for debugging purpose
-- `-w warm-up`: `warm-up` seconds to omit from the statistics (default 0)
+- `-w warm_up_sec`: `warm-up` seconds to omit from the statistics (default 0)
 - `-T timeout`: Maximum `timeout` seconds to transfer completion (default 0 - unlimited)
 - `-X`: HTTP method to perform (default GET)
 
@@ -29,19 +29,19 @@ Simply retrieve the greeting message.
 
     $ ./esperf "http://localhost:9200"
 
-Perform a match_all query 1000 times on all shards from 3 threads.
+Perform a `match_all` query 1000 times on all shards from 3 threads.
 
     $ echo '{"query": {"match_all": {}}}' | ./esperf -r 1000 -t 3 "http://localhost:9200/_search"
 
-Perform range queries with randomly generated numbers (0 to 99).
+Perform `range` queries with randomly generated numbers (0 to 99).
 
     $ echo '{"query": {"range": {"my_length": {"gte": $RNUM(100)}}}}' |  ./esperf -r 1000 -t 3 "http://localhost:9200/_search"
 
-Perform term queries with randomly selected strings from the dictionary.
+Perform `term` queries with randomly selected strings from the dictionary.
     
     $ echo '{"query": {"term": {"first_name": {"value": "$RDICT"}}}}' | ./esperf -r 1000 -t 3 -d ./names.txt "http://localhost:9200/_search?size=1"
 
-Perform bulk insert requests.
+Perform `bulk` insert requests.
 
     $ ./esperf -X PUT -r 1000 -t 3 -d ./names.txt "http://localhost:9200/test-index/test-type/_bulk" < bulk.txt
 
