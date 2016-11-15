@@ -29,6 +29,8 @@ public:
     string request_body_;
     string request_url_;
     bool verbose_ = false;
+    // timeout msec to check if stdin is available
+    u_int poll_timeout = 100;
 
     int Parse(int argc, char **argv);
 

@@ -20,8 +20,8 @@ Options:
 
 ## Downloads
 
-- [esperf-0.2.4-linux-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.2.4/esperf-0.2.4-linux-x86_64.zip)
-- [esperf-0.2.4-darwin-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.2.4/esperf-0.2.4-darwin-x86_64.zip)
+- [esperf-0.2.5-linux-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.2.5/esperf-0.2.5-linux-x86_64.zip)
+- [esperf-0.2.5-darwin-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.2.5/esperf-0.2.5-darwin-x86_64.zip)
 
 ## Command line usage examples
 

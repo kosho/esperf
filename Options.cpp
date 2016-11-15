@@ -117,7 +117,7 @@ bool Options::IsStdinAvailable() {
     fds.fd = 0; // stdin
     fds.events = POLLIN;
 
-    if (poll(&fds, 1, 0)){
+    if (poll(&fds, 1, poll_timeout)){
         return true;
     }
     return false;
