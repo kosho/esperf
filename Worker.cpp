@@ -45,6 +45,11 @@ void Worker::Run() {
             curl_easy_setopt(curl, CURLOPT_USERPWD, options_->http_user_.c_str());
         }
 
+        // Set headers
+        struct curl_slist *slist;
+        slist = curl_slist_append(slist, "Content-Type: application/json");
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, slist);
+
         while(stats_->CountRequest() < options_->num_recurrence_) {
             // Supply random numbers and strings
             string url = ReplaceRNUMEx(options_->request_url_);
