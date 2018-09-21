@@ -20,8 +20,8 @@ Options:
 
 ## Downloads
 
-- [esperf-0.2.5-linux-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.2.5/esperf-0.2.5-linux-x86_64.zip)
-- [esperf-0.2.5-darwin-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.2.5/esperf-0.2.5-darwin-x86_64.zip)
+- [esperf-0.2.6-linux-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.2.6/esperf-0.2.6-linux-x86_64.zip)
+- [esperf-0.2.6-darwin-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.2.6/esperf-0.2.6-darwin-x86_64.zip)
 
 ## Command line usage examples
 
@@ -90,14 +90,14 @@ The program is tested built and run on the following operating systems.
 ### Dependencies
 
 - cmake > 2.8
-- gcc-g++ > 4.8
+- gcc-c++ > 4.8
 - libcurl-devel > 7.40
 
 ### Make
 
 Simply run the below commands to generate the executable on the target platform.
 
-    $ cmake ./CMakeList.txt
+    $ cmake ./CMakeLists.txt
     $ make
 
 ## TODO:
