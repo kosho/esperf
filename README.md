@@ -15,13 +15,14 @@ Options:
 - `-w warm_up_sec`: `warm-up` seconds to omit from the statistics (default 0)
 - `-T timeout`: Maximum `timeout` seconds to transfer completion (default 0 - unlimited)
 - `-X`: HTTP method to perform (default GET)
+- `-H`: An additional HTTP header to carry
 
 `libcurl` is necessary to be installed on the local system. `sudo yum install libcurl` or `sudo apt-get install libcurl4-openssl-dev` to install.
 
 ## Downloads
 
-- [esperf-0.2.6-linux-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.2.6/esperf-0.2.6-linux-x86_64.zip)
-- [esperf-0.2.6-darwin-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.2.6/esperf-0.2.6-darwin-x86_64.zip)
+- [esperf-0.2.7-linux-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.2.7/esperf-0.2.7-linux-x86_64.zip)
+- [esperf-0.2.7-darwin-x86_64.zip](https://github.com/kosho/esperf/releases/download/0.2.7/esperf-0.2.7-darwin-x86_64.zip)
 
 ## Command line usage examples
 
