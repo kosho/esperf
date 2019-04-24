@@ -12,7 +12,7 @@ static const string OPTIONS_HEADER = "----------------------------------- Option
 int Options::Parse(int argc, char **argv)
 {
     int opt;
-    while ((opt = getopt(argc, argv,"vhX:d:i:w:T:r:t:u:")) != EOF)
+    while ((opt = getopt(argc, argv,"vhXH:d:i:w:T:r:t:u:")) != EOF)
         switch(opt)
         {
             case 'd':
@@ -41,6 +41,9 @@ int Options::Parse(int argc, char **argv)
                 break;
             case 'X':
                 http_method_ = optarg;
+                break;
+            case 'H':
+                http_header_ = optarg;
                 break;
             default:
                 cout << COMMAND_LINE_OPTIONS_MSG << endl;
@@ -106,6 +109,7 @@ void Options::Print()
     PrintLine("Dictionary", dict_filename_);
     PrintLine("URL", request_url_);
     PrintLine("HTTP Method", http_method_);
+    PrintLine("HTTP Header", http_header_);
     if (verbose_) PrintLine("HTTP User", http_user_);
     if (verbose_) PrintLine("Verbose", verbose_);
     PrintLine("Body", request_body_);

@@ -26,6 +26,7 @@ public:
     string dict_filename_;
     string http_method_ = "GET";
     string http_user_;
+    string http_header_;
     string request_body_;
     string request_url_;
     bool verbose_ = false;

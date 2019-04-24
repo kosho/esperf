@@ -48,6 +48,7 @@ void Worker::Run() {
         // Set headers
         struct curl_slist *slist;
         slist = curl_slist_append(slist, "Content-Type: application/json");
+        slist = curl_slist_append(slist, options_->http_header_.c_str());
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, slist);
 
         while(stats_->CountRequest() < options_->num_recurrence_) {
